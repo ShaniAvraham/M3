@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ExploreActivity">
+
+    <LinearLayout
+        android:id="@+id/top_panel"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="horizontal"
+        android:background="@color/colorGreen">
+
+        <ImageView
+            android:src="@drawable/menu_icon"
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            />
+
+        <ImageView
+            android:layout_width="251dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:src="@drawable/logo" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/explore"
+        android:textSize="30sp"
+        android:textColor="@color/colorGreen"
+        android:textStyle="bold"
+        android:padding="20dp"
+        />
+
+    <GridView
+        android:id="@+id/customgrid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:numColumns="2" />
+
+
+
+</LinearLayout>

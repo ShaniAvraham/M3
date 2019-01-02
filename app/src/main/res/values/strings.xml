@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">AppDemo</string>
+    <string name="username">USERNAME</string>
+    <string name="password">PASSWORD</string>
+    <string name="login">LOGIN</string>
+    <string name="signup">SIGN UP</string>
+    <string name="sign_up_txt">Don\'t have an account? SIGN UP</string>
+    <string name="explore">EXPLORE</string>
+    <string name="my_favorites">MY FAVORITES</string>
+    <string name="my_playlists">MY PLAYLISTS</string>
+    <string name="logout">LOGOUT</string>
+</resources>
