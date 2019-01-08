@@ -19,10 +19,10 @@ public class CustomAdapter extends BaseAdapter{
 
     private static LayoutInflater inflater=null;
 
-    public CustomAdapter(ExploreActivity exploreActivity, String[] playlistNameList, int[] playlistImages) {
+    public CustomAdapter(HomeActivity homeActivity, String[] playlistNameList, int[] playlistImages) {
         // Auto-generated constructor stub
         result=playlistNameList;
-        context=exploreActivity;
+        context=homeActivity;
         imageId=playlistImages;
         inflater = ( LayoutInflater )context.
                 getSystemService(Context.LAYOUT_INFLATER_SERVICE);

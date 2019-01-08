@@ -34,7 +34,7 @@ public class ExploreActivity extends AppCompatActivity {
         setContentView(R.layout.activity_explore);
 
         gridview = findViewById(R.id.customgrid);
-        gridview.setAdapter(new CustomAdapter(this, playlistNameList, playlistImages));
+        //gridview.setAdapter(new CustomAdapter(this, playlistNameList, playlistImages));
     }
 
     @Override

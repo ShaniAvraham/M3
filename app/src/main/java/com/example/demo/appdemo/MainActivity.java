@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
             // login button onClick
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ExploreActivity.class);
+                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
 
                 // ToDo: verify Login username and password
                 /*

@@ -7,26 +7,13 @@
     android:orientation="vertical"
     tools:context=".ExploreActivity">
 
-    <LinearLayout
-        android:id="@+id/top_panel"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:orientation="horizontal"
-        android:background="@color/colorGreen">
-
-        <ImageView
-            android:src="@drawable/menu_icon"
-            android:layout_width="80dp"
-            android:layout_height="match_parent"
-            />
-
-        <ImageView
-            android:layout_width="251dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:src="@drawable/logo" />
-
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:text="Playlist"
+        android:textSize="30sp"
+        android:layout_margin="30dp"
+        android:textColor="@color/colorGreen"/>
 
     <ListView
         android:id="@+id/listview"

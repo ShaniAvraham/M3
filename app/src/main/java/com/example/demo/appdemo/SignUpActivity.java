@@ -28,7 +28,7 @@ public class SignUpActivity extends AppCompatActivity {
                     String message = editText.getText().toString();
                     intent.putExtra(EXTRA_MESSAGE, message);*/
 
-                Intent intent_explore = new Intent(SignUpActivity.this, ExploreActivity.class);
+                Intent intent_explore = new Intent(SignUpActivity.this, HomeActivity.class);
                 startActivity(intent_explore);
             }
         });
