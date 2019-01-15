@@ -15,21 +15,21 @@ public class PlaylistActivity extends AppCompatActivity {
         setContentView(R.layout.activity_playlist);
 
         String[] songs = {
-                "Trending",
-                "Party On!",
-                "Summer Vibes",
-                "Chill",
-                "Pop",
-                "Rock",
+                "Apologize",
+                "How Long",
+                "Stay",
+                "Do I Wanna Know",
+                "Nevermind",
+                "Sweater Weather",
         };
 
         String[] artists = {
-                "Trending",
-                "Party On!",
-                "Summer Vibes",
-                "Chill",
-                "Pop",
-                "Rockjrkghfhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjjjj",
+                "Timbaland ft. One Republic",
+                "Charlie Puth",
+                "Zedd ft. Alessia Cara",
+                "Arctic Monkeys",
+                "Dennis Lloyd",
+                "The Neighborhood",
         };
         ListView listview;
 
