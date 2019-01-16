@@ -36,5 +36,8 @@ public class PlaylistActivity extends AppCompatActivity {
         // TODO send a request with playlist name to server and present the songs
         listview = findViewById(R.id.listview);
         listview.setAdapter(new SongListAdapter(this, songs, artists));
+
+        // TODO after pressing a button - send a request with the song's name and receive a link to play
+        // TODO play the song using the link
     }
 }
