@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="song"
         android:textSize="26sp"
-        android:layout_marginStart="30dp"
+        android:layout_marginLeft="30dp"
         android:singleLine="true"
         />
 
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:text="artist"
         android:textSize="20sp"
-        android:layout_marginStart="30dp"
+        android:layout_marginLeft="30dp"
         android:singleLine="true"
         />
 
