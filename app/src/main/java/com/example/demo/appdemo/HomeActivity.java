@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.GridView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class HomeActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
@@ -69,6 +71,7 @@ public class HomeActivity extends AppCompatActivity {
                 break;
 
             case R.id.logout:
+                FirebaseAuth.getInstance().signOut();
                 startActivity(new Intent(HomeActivity.this, MainActivity.class));
                 break;
 
