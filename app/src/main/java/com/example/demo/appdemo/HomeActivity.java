@@ -32,14 +32,15 @@ public class HomeActivity extends AppCompatActivity {
 
     final Handler handler = new Handler();
 
+    // UI components
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-
     GridView gridview;
 
     String[] playlistNameList;
     List<String> temp = new ArrayList<>();
 
+    // TODO: add photos to server (instead of using res)
     int[] playlistImages = {
             R.mipmap.chill_icon,
             R.mipmap.party_icon,
@@ -56,7 +57,7 @@ public class HomeActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        readPlaylist();
+        readPlaylists();
 
         mDrawerLayout = findViewById(R.id.activity_main);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.Open, R.string.Close);
@@ -125,7 +126,7 @@ public class HomeActivity extends AppCompatActivity {
     /**
      * readPlaylist function reads the name of the home page playlists from the database
      */
-    public void readPlaylist()
+    public void readPlaylists()
     {
         Task<QuerySnapshot> playlists = db.collection("static playlists")
                 .get()

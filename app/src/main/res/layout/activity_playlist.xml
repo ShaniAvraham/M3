@@ -8,9 +8,11 @@
     tools:context=".ExploreActivity">
 
     <TextView
+        android:id="@+id/playlist_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Playlist"
+        android:textAllCaps="true"
+        android:textStyle="bold"
         android:textSize="30sp"
         android:layout_margin="30dp"
         android:textColor="@color/colorGreen"/>
