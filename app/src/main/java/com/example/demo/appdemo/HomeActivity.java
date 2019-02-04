@@ -57,8 +57,7 @@ public class HomeActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        readPlaylists();
-
+        // Darwer menu
         mDrawerLayout = findViewById(R.id.activity_main);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.Open, R.string.Close);
         mDrawerLayout.addDrawerListener(mToggle);
@@ -69,18 +68,9 @@ public class HomeActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setupDrawerContent(nvDrawer);
 
-        // create the gridview after the data has been read from the database
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                playlistNameList = new String[temp.size()];
-                temp.toArray(playlistNameList);
-                gridview = findViewById(R.id.customgrid);
-                gridview.setAdapter(new CustomAdapter(HomeActivity.this, playlistNameList, playlistImages));
-            }
-        }, 1750);
-
-        // TODO: initial the gridview exactly after the data has been read, not after defined amount of time
+        // display the home page playlists
+        gridview = findViewById(R.id.customgrid);
+        readPlaylists();
 
     }
 
@@ -124,10 +114,12 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     /**
-     * readPlaylist function reads the name of the home page playlists from the database
+     * readPlaylist function reads the names of the home page playlists from the database and
+     * displays them
      */
     public void readPlaylists()
     {
+        // read playlists data from the database
         Task<QuerySnapshot> playlists = db.collection("static playlists")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -136,11 +128,16 @@ public class HomeActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             if (task.getResult()!=null)
                             {
+                                // iterate the names of the playlists
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     String name = document.getId();
                                     temp.add(name);
                                     Log.d(TAG, document.getId() + " => !!!" + document.getData() + document.getData());
                                 }
+                                // call the CostumeAdapter of the gridview with the playlists details
+                                playlistNameList = new String[temp.size()];
+                                temp.toArray(playlistNameList);
+                                gridview.setAdapter(new CustomAdapter(HomeActivity.this, playlistNameList, playlistImages));
                             }
                         }
                         else

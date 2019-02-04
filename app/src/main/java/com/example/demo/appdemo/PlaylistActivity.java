@@ -60,22 +60,14 @@ public class PlaylistActivity extends AppCompatActivity {
 
         Log.w(TAG, "!!!playlist name" + playlistName);
 
+        // display the selected playlist songs
         getCurrentPlaylist();
-
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                listview.setAdapter(new SongListAdapter(PlaylistActivity.this, songs, artists));
-            }
-        }, 1000);
-
-        // TODO: initial the listview exactly after the data has been read, not after defined amount of time
 
     }
 
     public void getCurrentPlaylist()
     {
+        // read songs data from the database
         Log.w(TAG, "entered getCurrentPlaylist!!!");
         DocumentReference playlistsRef = db.collection("static playlists").document(playlistName);
         playlistsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -85,8 +77,12 @@ public class PlaylistActivity extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
                     if (document!=null) {
                         playlist = document.toObject(Playlist.class);
+                        // an array of the songs' names
                         songs = playlist.getSongsNames();
+                        //an array of the artists'
                         artists = playlist.getArtistsNames();
+                        // call the SongListAdapter of the listview with the songs details
+                        listview.setAdapter(new SongListAdapter(PlaylistActivity.this, songs, artists));
                     }
                     Log.d(TAG, "DocumentSnapshot data: !!!" + playlist);
                 }
