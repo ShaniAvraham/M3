@@ -12,7 +12,10 @@ import android.os.Bundle;
 import android.text.method.MovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -26,21 +29,28 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.TreeMap;
 
 
 public class PlaylistActivity extends AppCompatActivity {
 
     private static final String TAG = ".PlaylistActivity";
-    final Handler handler = new Handler();
+
     // UI components
     ListView listview;
-    TextView playlistNameTxt;
+    TextView playlistNameTxt , currentSongTxt, currentArtistTxt, timerTxt;
+    ImageButton playButton, rewindButton, forwardButton;
+    SeekBar seekBar;
 
     Playlist playlist;
     String playlistName;
     String[] songs;
     String[] artists;
+    NavigableMap<String,String> navigatePlaylist;
 
     Song currentSong;
     MediaPlayer mediaPlayer;
@@ -58,6 +68,14 @@ public class PlaylistActivity extends AppCompatActivity {
         playlistNameTxt = findViewById(R.id.playlist_name);
         listview = findViewById(R.id.listview);
 
+        currentSongTxt = findViewById(R.id.textSong);
+        currentArtistTxt = findViewById(R.id.textArtist);
+
+        playButton = findViewById(R.id.play_pause_btn);
+        rewindButton = findViewById(R.id.rewind_btn);
+        forwardButton = findViewById(R.id.forward_btn);
+
+
         // set playlist name
         Intent intent = getIntent();
         Bundle bd = intent.getExtras();
@@ -71,11 +89,60 @@ public class PlaylistActivity extends AppCompatActivity {
         // display the selected playlist songs
         getCurrentPlaylist();
 
-        currentSong = new Song();
-
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mDialog = new ProgressDialog(PlaylistActivity.this);
+
+        // play button onClickListener
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // if a song has been chosen
+                if(currentSong.getName()!= null)
+                {
+                    // if a song is currently playing, pause it and change the icon to play icon
+                    if (mediaPlayer.isPlaying())
+                    {
+                        mediaPlayer.pause();
+                        playButton.setImageResource(R.drawable.ic_play);
+                    }
+                    // if a song is not currently playing, play it and change the icon to pause icon
+                    else
+                    {
+                        mediaPlayer.start();
+                        playButton.setImageResource(R.drawable.ic_pause);
+                    }
+                }
+            }
+        });
+
+        rewindButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.w(TAG,"@@@"+navigatePlaylist.toString());
+                Map.Entry<String, String> previosSongEntry = navigatePlaylist.lowerEntry(currentSong.getName());
+                Log.w(TAG, "@@@is map empty " + navigatePlaylist.isEmpty());
+                if (previosSongEntry == null) {
+                        previosSongEntry = navigatePlaylist.lastEntry();
+                    }
+                Log.w(TAG, "@@@prevsong " + previosSongEntry);
+                readSelectedSong(previosSongEntry.getKey());
+            }
+        });
+
+        forwardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.w(TAG,"@@@"+navigatePlaylist.toString());
+                Map.Entry<String, String> nextSongEntry = navigatePlaylist.higherEntry(currentSong.getName());
+                Log.w(TAG, "@@@is map empty " + navigatePlaylist.isEmpty());
+                if (nextSongEntry == null) {
+                    nextSongEntry = navigatePlaylist.firstEntry();
+                }
+                Log.w(TAG, "@@@prevsong " + nextSongEntry);
+                readSelectedSong(nextSongEntry.getKey());
+            }
+        });
 
     }
 
@@ -100,6 +167,14 @@ public class PlaylistActivity extends AppCompatActivity {
                         artists = playlist.getArtistsNames();
                         // call the SongListAdapter of the listview with the songs details
                         listview.setAdapter(new SongListAdapter(PlaylistActivity.this, songs, artists));
+                        Log.w(TAG, "@@@songs map: " + playlist.getSongs());
+                        Log.w(TAG, "@@@Songs array " + Arrays.toString(songs));
+                        navigatePlaylist = new TreeMap<>();
+                        for (Map.Entry<String, String> entry: playlist.getSongs().entrySet()) {
+                            navigatePlaylist.put(entry.getKey(),entry.getValue());
+                            Log.w(TAG, "@@@ copy: key: " + entry.getKey() + " value: " + entry.getValue());
+                        }
+                        currentSong = new Song();
                     }
                     Log.d(TAG, "DocumentSnapshot data: !!!" + playlist);
                 } else {
@@ -144,6 +219,9 @@ public class PlaylistActivity extends AppCompatActivity {
             protected void onPreExecute() {
                 mDialog.setMessage("please wait\n" + currentSong.getName());
                 mDialog.show();
+                currentSongTxt.setText(currentSong.getName());
+                currentArtistTxt.setText(currentSong.getArtist());
+                playButton.setImageResource(R.drawable.ic_pause);
             }
 
             /**
@@ -155,8 +233,8 @@ public class PlaylistActivity extends AppCompatActivity {
                     // pause and reset media player before changing the source
                     if(mediaPlayer.isPlaying()) {
                         mediaPlayer.pause();
-                        mediaPlayer.reset();
                     }
+                    mediaPlayer.reset();
 
                     Log.w(TAG, "@@@param - " + param[0]);
                     // set the link as data source

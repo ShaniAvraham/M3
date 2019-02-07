@@ -2,9 +2,13 @@ package com.example.demo.appdemo;
 
 import android.support.annotation.NonNull;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 public class Playlist {
 
@@ -24,6 +28,12 @@ public class Playlist {
 
     }
 
+    public Playlist(String n, Map<String,String> s)
+    {
+        name = n;
+        songs = s;
+    }
+
     public String getName() {
         return name;
     }
@@ -34,7 +44,7 @@ public class Playlist {
 
     /**
      * getSongsNames function returns an array of the playlist's songs names
-     * @return an array of songs' names
+     * @return an alphabetically sorted array of songs' names
      */
     String[] getSongsNames()
     {
@@ -45,6 +55,7 @@ public class Playlist {
         }
         String[] names = new String[temp.size()];
         temp.toArray(names);
+        Arrays.sort(names);
         return names;
     }
 
@@ -63,6 +74,29 @@ public class Playlist {
         String[] artists = new String[temp.size()];
         temp.toArray(artists);
         return artists;
+    }
+
+    /**
+     * getSongEntry function receives a song's name and returns it's entry from the songs map
+     * @param name (String) the song's name
+     * @return (Map.Entry<String,String>) the requested entry
+     */
+    Map.Entry<String,String> getSongEntry(String name)
+    {
+        for (Map.Entry<String, String> entry: songs.entrySet()) {
+            if(entry.getKey().equals(name))
+                return entry;
+        }
+        return null;
+    }
+
+    NavigableMap<String,String> getNavigationMap()
+    {
+        NavigableMap<String,String> navMap = new TreeMap<>();
+        for (Map.Entry<String, String> entry: songs.entrySet()) {
+            navMap.put(entry.getKey(),entry.getValue());
+        }
+        return navMap;
     }
 
     private String playlistString()

@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
 
     // UI components
     private EditText emailField, passwordField;
-    private Button loginButton, signupButton;
 
 
     @Override
@@ -36,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // UI components
-        loginButton = findViewById(R.id.login_btn);
-        signupButton = findViewById(R.id.signup_btn);
+        Button loginButton = findViewById(R.id.login_btn);
+        Button signupButton = findViewById(R.id.signup_btn);
         emailField = findViewById(R.id.email);
         passwordField = findViewById(R.id.password);
 
