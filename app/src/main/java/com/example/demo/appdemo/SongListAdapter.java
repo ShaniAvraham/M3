@@ -15,7 +15,7 @@ public class SongListAdapter extends BaseAdapter{
     String [] artists;
 
     private static LayoutInflater inflater=null;
-    public SongListAdapter(PlaylistActivity playlistActivity, String[] songNameList, String[] artistNameList) {
+    SongListAdapter(PlaylistActivity playlistActivity, String[] songNameList, String[] artistNameList) {
         // Auto-generated constructor stub
         result=songNameList;
         context=playlistActivity;
@@ -55,8 +55,8 @@ public class SongListAdapter extends BaseAdapter{
         View rowView;
 
         rowView = inflater.inflate(R.layout.song_list, null);
-        holder.song_txt =(TextView) rowView.findViewById(R.id.songs);
-        holder.artist_txt =(TextView) rowView.findViewById(R.id.artists);
+        holder.song_txt = rowView.findViewById(R.id.songs);
+        holder.artist_txt = rowView.findViewById(R.id.artists);
 
         holder.song_txt.setText(result[position]);
         holder.artist_txt.setText(artists[position]);
@@ -70,6 +70,7 @@ public class SongListAdapter extends BaseAdapter{
                 // shows a message with the grid clicked
                 Toast.makeText(context, "You Clicked "+result[position], Toast.LENGTH_SHORT).show();
                 // TODO send message to server with the song's name, open play bar with the song's details and play the song
+                ((PlaylistActivity)context).readSelectedSong(result[position]);
             }
         });
 
