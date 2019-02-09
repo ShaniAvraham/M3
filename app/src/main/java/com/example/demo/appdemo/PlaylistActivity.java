@@ -236,6 +236,8 @@ public class PlaylistActivity extends AppCompatActivity {
                 mDialog.show();
                 currentSongTxt.setText(currentSong.getName());
                 currentArtistTxt.setText(currentSong.getArtist());
+                realtimeLength = 0;
+                updateTimer();
                 playButton.setImageResource(R.drawable.ic_pause);
             }
 
@@ -268,7 +270,6 @@ public class PlaylistActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(String s) {
                 mediaFileLength = mediaPlayer.getDuration();
-                realtimeLength = 0;
                 mediaPlayer.start();
                 updateSeekBar();
                 mDialog.dismiss();
@@ -278,7 +279,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
                     @Override
                     public void onCompletion(MediaPlayer mp) {
-                        // reset media bar an dplay next song
+                        // reset media bar an play next song
                         realtimeLength = 0;
                         handler.removeCallbacks(updater);
                         updateTimer();

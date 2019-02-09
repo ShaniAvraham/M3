@@ -17,7 +17,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".SignUpActivity" />
-        <activity android:name=".ExploreActivity" />
         <activity android:name=".PlaylistActivity" />
         <activity android:name=".HomeActivity"></activity>
     </application>

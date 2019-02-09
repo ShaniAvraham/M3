@@ -65,11 +65,7 @@ public class SongListAdapter extends BaseAdapter{
 
             @Override
             public void onClick(View v) {
-                // Auto-generated method stub
-
-                // shows a message with the grid clicked
-                Toast.makeText(context, "You Clicked "+result[position], Toast.LENGTH_SHORT).show();
-                // TODO send message to server with the song's name, open play bar with the song's details and play the song
+                // play the selected song
                 ((PlaylistActivity)context).readSelectedSong(result[position]);
             }
         });
