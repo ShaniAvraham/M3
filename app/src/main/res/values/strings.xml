@@ -13,4 +13,6 @@
     <string name="logout">LOGOUT</string>
     <string name="Open">Open</string>
     <string name="Close">Close</string>
+    <string name="search_hint">Search</string>
+    <string name="search">SEARCH</string>
 </resources>

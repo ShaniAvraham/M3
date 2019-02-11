@@ -42,7 +42,8 @@
         android:background="@color/colorWhite"
         app:menu="@menu/drawermenu"
         android:layout_gravity="start"
-        android:id="@+id/nv">
+        android:id="@+id/nv"
+        app:itemTextColor="@color/colorGray">
     </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>

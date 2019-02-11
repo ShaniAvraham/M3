@@ -91,6 +91,10 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.home:
                 break;
 
+            case R.id.search:
+                startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+                break;
+
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
                 startActivity(new Intent(HomeActivity.this, MainActivity.class));
