@@ -15,7 +15,7 @@ public class ResultsAdapter extends BaseAdapter {
     String [] artists;
 
     private static LayoutInflater inflater=null;
-    ResultsAdapter(SearchActivity searchActivity, List<Song> songsList) {
+    ResultsAdapter(PlaylistActivity playlistActivity, List<Song> songsList) {
 
         String[] songNames = new String[songsList.size()];
         String[] artistNames = new String[songsList.size()];
@@ -29,7 +29,7 @@ public class ResultsAdapter extends BaseAdapter {
         }
 
         result=songNames;
-        context=searchActivity;
+        context=playlistActivity;
         artists=artistNames;
         inflater = ( LayoutInflater )context.
                 getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -74,7 +74,7 @@ public class ResultsAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 // play the selected song
-                //((SearchActivity)context).readSelectedSong(result[position]);
+                ((PlaylistActivity)context).playSelectedResult(position);
             }
         });
 

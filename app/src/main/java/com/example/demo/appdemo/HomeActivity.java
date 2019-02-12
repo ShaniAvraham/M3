@@ -92,7 +92,9 @@ public class HomeActivity extends AppCompatActivity {
                 break;
 
             case R.id.search:
-                startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+                Intent intent= new Intent(HomeActivity.this, PlaylistActivity.class);
+                intent.putExtra("name", "Search");
+                startActivity(intent);
                 break;
 
             case R.id.logout:
