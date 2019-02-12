@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public class Playlist implements PlayableList{
@@ -78,6 +79,7 @@ public class Playlist implements PlayableList{
     }
 
     public void setSongNames() {
+        songs = new TreeMap<>(songs);
         songNames = new ArrayList<>();
         for (Map.Entry<String, String> entry: songs.entrySet())
         {
