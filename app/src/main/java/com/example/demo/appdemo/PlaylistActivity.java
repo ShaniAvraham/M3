@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -28,7 +29,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
@@ -45,12 +48,14 @@ public class PlaylistActivity extends AppCompatActivity {
     TextView playlistNameTxt, currentSongTxt, currentArtistTxt, timerTxt;
     ImageButton playButton, rewindButton, forwardButton;
     SeekBar seekBar;
+    SearchView searchView;
 
     Playlist playlist;
     String playlistName;
     String[] songs;
     String[] artists;
-    NavigableMap<String, String> navigatePlaylist;
+
+    SearchResults results;
 
     Song currentSong;
     MediaPlayer mediaPlayer;
@@ -85,18 +90,47 @@ public class PlaylistActivity extends AppCompatActivity {
         seekBar = findViewById(R.id.seekbar);
         seekBar.setMax(99);
 
+        currentSong = new Song();
+
         // set playlist name
         Intent intent = getIntent();
         Bundle bd = intent.getExtras();
         if (bd != null) {
             playlistName = (String) bd.get("name");
+        }
+
+        // Search page
+        if (playlistName.equals("Search"))
+        {
+            searchView = findViewById(R.id.search_view);
+            searchView.setVisibility(View.VISIBLE);
+            playlistNameTxt.setVisibility(View.GONE);
+            results = new SearchResults();
+
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    getSearchResults(query);
+                    currentSong = new Song();
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    return false;
+                }
+            });
+        }
+
+        // Static playlist
+        else
+        {
             playlistNameTxt.setText(playlistName);
+            // display the selected playlist songs
+            getCurrentPlaylist();
         }
 
         Log.w(TAG, "!!!playlist name" + playlistName);
-
-        // display the selected playlist songs
-        getCurrentPlaylist();
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -128,7 +162,19 @@ public class PlaylistActivity extends AppCompatActivity {
         rewindButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playPreviosSong();
+                if (currentSong.getName()!=null) {
+                    if (playlist!=null) {
+                        playPreviosSong();
+                    }
+                    else {
+                        if (!results.getResults().isEmpty())
+                        {
+                            currentSong = results.getPrevSong(currentSong);
+                            playCurrentSong();
+                        }
+
+                    }
+                }
             }
         });
 
@@ -136,7 +182,19 @@ public class PlaylistActivity extends AppCompatActivity {
         forwardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playNextSong();
+                if (currentSong.getName()!=null) {
+                    if (playlist!=null) {
+                        playNextSong();
+                    }
+                    else {
+                        if (!results.getResults().isEmpty())
+                        {
+                            currentSong = results.getNextSong(currentSong);
+                            playCurrentSong();
+                        }
+
+                    }
+                }
             }
         });
 
@@ -157,6 +215,60 @@ public class PlaylistActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * getSearchResults function reads the matching results of the current search from the database and
+     * displays them
+     * @param searchText (String) the text that the user searched
+     */
+    public void getSearchResults(String searchText) {
+
+        results = new SearchResults();
+
+        // read songs data from the database
+        CollectionReference songsRef = db.collection("songs");
+
+        // matching song names
+        Query resultSongs = songsRef.whereEqualTo("name", searchText);
+        resultSongs.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                Song resultSong;
+
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                        resultSong = document.toObject(Song.class);
+                        results.addResult(resultSong);
+                    }
+                }
+            }
+        });
+
+        // matching artists
+        resultSongs = songsRef.whereEqualTo("artist", searchText);
+        resultSongs.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                Song resultSong;
+
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                        resultSong = document.toObject(Song.class);
+                        results.addResult(resultSong);
+                    }
+                    if (!results.getResults().isEmpty())
+                        listview.setAdapter(new ResultsAdapter(PlaylistActivity.this, results.getResults()));
+                }
+            }
+        });
+
+    }
+
+
+    void playSelectedResult(int index)
+    {
+        currentSong = results.getResults().get(index);
+        playCurrentSong();
+    }
 
     /**
      * getCurrentPlaylist function reads the songs of the current playlist from the database and
@@ -181,12 +293,7 @@ public class PlaylistActivity extends AppCompatActivity {
                         listview.setAdapter(new SongListAdapter(PlaylistActivity.this, songs, artists));
                         Log.w(TAG, "@@@songs map: " + playlist.getSongs());
                         Log.w(TAG, "@@@Songs array " + Arrays.toString(songs));
-                        navigatePlaylist = new TreeMap<>();
-                        for (Map.Entry<String, String> entry : playlist.getSongs().entrySet()) {
-                            navigatePlaylist.put(entry.getKey(), entry.getValue());
-                            Log.w(TAG, "@@@ copy: key: " + entry.getKey() + " value: " + entry.getValue());
-                        }
-                        currentSong = new Song();
+                        playlist.setSongNames();
                     }
                     Log.d(TAG, "DocumentSnapshot data: !!!" + playlist);
                 } else {
@@ -284,7 +391,13 @@ public class PlaylistActivity extends AppCompatActivity {
                         handler.removeCallbacks(updater);
                         updateTimer();
                         seekBar.setProgress(0);
-                        playNextSong();
+                        if (playlist!=null)
+                            playNextSong();
+                        else
+                        {
+                            currentSong = results.getNextSong(currentSong);
+                            playCurrentSong();
+                        }
                     }
                 });
             }
@@ -298,11 +411,7 @@ public class PlaylistActivity extends AppCompatActivity {
      * playNextSong function plays the next song on the playlist
      */
     void playNextSong() {
-        Map.Entry<String, String> nextSongEntry = navigatePlaylist.higherEntry(currentSong.getName());
-        if (nextSongEntry == null) {
-            nextSongEntry = navigatePlaylist.firstEntry();
-        }
-        readSelectedSong(nextSongEntry.getKey());
+        readSelectedSong(playlist.getNextSong(currentSong.getName()));
     }
 
 
@@ -310,11 +419,7 @@ public class PlaylistActivity extends AppCompatActivity {
      * playPreviosSong function plays the previous song on the playlist
      */
     void playPreviosSong() {
-        Map.Entry<String, String> previosSongEntry = navigatePlaylist.lowerEntry(currentSong.getName());
-        if (previosSongEntry == null) {
-            previosSongEntry = navigatePlaylist.lastEntry();
-        }
-        readSelectedSong(previosSongEntry.getKey());
+        readSelectedSong(playlist.getPrevSong(currentSong.getName()));
     }
 
 
