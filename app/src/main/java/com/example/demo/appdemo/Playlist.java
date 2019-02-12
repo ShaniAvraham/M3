@@ -2,15 +2,15 @@ package com.example.demo.appdemo;
 
 import android.support.annotation.NonNull;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
-public class Playlist {
+
+public class Playlist implements PlayableList{
 
     /**
      * Playlist class is a class which represents a playlist object
@@ -22,6 +22,7 @@ public class Playlist {
 
     private String name;
     private Map<String, String> songs;
+    private List<String> songNames;
 
     public Playlist()
     {
@@ -76,28 +77,45 @@ public class Playlist {
         return artists;
     }
 
-    /**
-     * getSongEntry function receives a song's name and returns it's entry from the songs map
-     * @param name (String) the song's name
-     * @return (Map.Entry<String,String>) the requested entry
-     */
-    Map.Entry<String,String> getSongEntry(String name)
-    {
-        for (Map.Entry<String, String> entry: songs.entrySet()) {
-            if(entry.getKey().equals(name))
-                return entry;
+    public void setSongNames() {
+        songNames = new ArrayList<>();
+        for (Map.Entry<String, String> entry: songs.entrySet())
+        {
+            songNames.add(entry.getKey());
         }
-        return null;
+        Collections.sort(songNames);
     }
 
-    NavigableMap<String,String> getNavigationMap()
-    {
-        NavigableMap<String,String> navMap = new TreeMap<>();
-        for (Map.Entry<String, String> entry: songs.entrySet()) {
-            navMap.put(entry.getKey(),entry.getValue());
-        }
-        return navMap;
+    /**
+     * getNextSong recieves the name of the current song and returns the name of the next song
+     *
+     * @param currentSong (String) the name of the current song
+     * @return (String) the name of the next song
+     */
+    @Override
+    public String getNextSong(String currentSong) {
+        int indexCurrent = songNames.indexOf(currentSong);
+        int indexNext = indexCurrent + 1;
+        if (indexNext==songNames.size())
+            indexNext = 0;
+        return songNames.get(indexNext);
     }
+
+    /**
+     * getPrevSong receives the name of the current song and returns the name of the previous song
+     *
+     * @param currentSong (String) the name of the current song
+     * @return (String) the name of the previous song
+     */
+    @Override
+    public String getPrevSong(String currentSong) {
+        int indexCurrent = songNames.indexOf(currentSong);
+        int indexPrev = indexCurrent - 1;
+        if (indexPrev==-1)
+            indexPrev = songNames.size() - 1;
+        return songNames.get(indexPrev);
+    }
+
 
     private String playlistString()
     {

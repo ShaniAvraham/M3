@@ -100,7 +100,7 @@ public class SearchActivity extends AppCompatActivity {
                         currentSong = document.toObject(Song.class);
                         results.add(currentSong);
                     }
-                    resltslistView.setAdapter(new ResultsAdapter(SearchActivity.this, results));
+                    //resltslistView.setAdapter(new ResultsAdapter(SearchActivity.this, results));
 
                 }
             }
