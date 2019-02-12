@@ -285,6 +285,7 @@ public class PlaylistActivity extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
                     if (document != null) {
                         playlist = document.toObject(Playlist.class);
+                        playlist.setSongNames();
                         // an array of the songs' names
                         songs = playlist.getSongsNames();
                         //an array of the artists'
@@ -293,7 +294,7 @@ public class PlaylistActivity extends AppCompatActivity {
                         listview.setAdapter(new SongListAdapter(PlaylistActivity.this, songs, artists));
                         Log.w(TAG, "@@@songs map: " + playlist.getSongs());
                         Log.w(TAG, "@@@Songs array " + Arrays.toString(songs));
-                        playlist.setSongNames();
+
                     }
                     Log.d(TAG, "DocumentSnapshot data: !!!" + playlist);
                 } else {
