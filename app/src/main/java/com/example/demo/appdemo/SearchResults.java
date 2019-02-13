@@ -7,15 +7,24 @@ import android.support.annotation.NonNull;
 
 public class SearchResults{
 
+    private String searchKey;
     private List<Song> results;
 
     public SearchResults()
     {
+        searchKey = "";
         results = new ArrayList<>();
     }
 
-    public SearchResults(List<Song> r)
+    public SearchResults(String sk)
     {
+        searchKey = sk;
+        results = new ArrayList<>();
+    }
+
+    public SearchResults(String sk, List<Song> r)
+    {
+        searchKey = sk;
         results = r;
     }
 
@@ -23,6 +32,19 @@ public class SearchResults{
         return results;
     }
 
+    public String getSearchKey() {
+        return searchKey;
+    }
+
+    public void setSearchKey(String searchKey) {
+        this.searchKey = searchKey;
+    }
+
+    /**
+     * addResult function adds a song to the results list
+     *
+     * @param result (Song) the song to add
+     */
     public void addResult(Song result)
     {
         results.add(result);
@@ -54,6 +76,28 @@ public class SearchResults{
         if (indexPrev==-1)
             indexPrev = results.size() - 1;
         return results.get(indexPrev);
+    }
+
+    /**
+     * getFittingSearchKey function returns the search key in a fitting database search format
+     *
+     * @return (String) the fitting search format key
+     */
+    public String getFittingSearchKey()
+    {
+        char[] chars = searchKey.toLowerCase().toCharArray();
+        boolean found = false;
+        for (int i = 0; i < chars.length; i++) {
+            if (!found && Character.isLetter(chars[i])) {
+                chars[i] = Character.toUpperCase(chars[i]);
+                found = true;
+            }
+            else if (Character.isWhitespace(chars[i]))
+            {
+                found = false;
+            }
+        }
+        return String.valueOf(chars);
     }
 
     private String resultsString()

@@ -19,7 +19,6 @@
         <activity android:name=".SignUpActivity" />
         <activity android:name=".PlaylistActivity" />
         <activity android:name=".HomeActivity" />
-        <activity android:name=".SearchActivity"></activity>
     </application>
 
 </manifest>
