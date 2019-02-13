@@ -16,23 +16,33 @@ public class ResultsAdapter extends BaseAdapter {
 
     private static LayoutInflater inflater=null;
     ResultsAdapter(PlaylistActivity playlistActivity, List<Song> songsList) {
+        String[] songNames;
+        String[] artistNames;
+        if (songsList.isEmpty())
+        {
+            songNames = new String[1];
+            songNames[0] = "No results";
+            artistNames = new String[1];
+            artistNames[0] = "";
+        }
+        else {
+            songNames = new String[songsList.size()];
+            artistNames = new String[songsList.size()];
 
-        String[] songNames = new String[songsList.size()];
-        String[] artistNames = new String[songsList.size()];
+            int index = 0;
 
-        int index=0;
-
-        for (Song s: songsList) {
-            songNames[index] = s.getName();
-            artistNames[index] = s.getArtist();
-            index++;
+            for (Song s : songsList) {
+                songNames[index] = s.getName();
+                artistNames[index] = s.getArtist();
+                index++;
+            }
         }
 
-        result=songNames;
-        context=playlistActivity;
-        artists=artistNames;
-        inflater = ( LayoutInflater )context.
-                getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            result = songNames;
+            context = playlistActivity;
+            artists = artistNames;
+            inflater = (LayoutInflater) context.
+                    getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
     }
 
@@ -69,16 +79,19 @@ public class ResultsAdapter extends BaseAdapter {
         holder.song_txt.setText(result[position]);
         holder.artist_txt.setText(artists[position]);
 
-        rowView.setOnClickListener(new View.OnClickListener() {
+        if (artists[0] != "") {
+            rowView.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                // play the selected song
-                ((PlaylistActivity)context).playSelectedResult(position);
-            }
-        });
+                @Override
+                public void onClick(View v) {
+                    // play the selected song
+                    ((PlaylistActivity) context).playSelectedResult(position);
+                }
+            });
+        }
 
         return rowView;
+
     }
 
 }

@@ -15,4 +15,6 @@
     <string name="Close">Close</string>
     <string name="search_hint">Search</string>
     <string name="search">SEARCH</string>
+    <string name="no_results">No search results for: </string>
+
 </resources>
