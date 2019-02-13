@@ -103,11 +103,16 @@ public class PlaylistActivity extends AppCompatActivity {
         if (playlistName.equals("Search"))
         {
             searchView = findViewById(R.id.search_view);
+
+            // set UI to search page
             searchView.setVisibility(View.VISIBLE);
             playlistNameTxt.setVisibility(View.GONE);
+
             results = new SearchResults();
 
+            // set search listener
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                // search when usr presses search key
                 @Override
                 public boolean onQueryTextSubmit(String query) {
                     getSearchResults(query);
@@ -220,15 +225,19 @@ public class PlaylistActivity extends AppCompatActivity {
      * displays them
      * @param searchText (String) the text that the user searched
      */
-    public void getSearchResults(String searchText) {
+    public void getSearchResults(final String searchText) {
+        // reset the media player UI
+        resetMediaPlayerUI();
+        if (mediaPlayer.isPlaying())
+            mediaPlayer.pause();
 
-        results = new SearchResults();
+        results = new SearchResults(searchText);
 
         // read songs data from the database
         CollectionReference songsRef = db.collection("songs");
 
         // matching song names
-        Query resultSongs = songsRef.whereEqualTo("name", searchText);
+        Query resultSongs = songsRef.whereEqualTo("name", results.getFittingSearchKey());
         resultSongs.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -244,7 +253,7 @@ public class PlaylistActivity extends AppCompatActivity {
         });
 
         // matching artists
-        resultSongs = songsRef.whereEqualTo("artist", searchText);
+        resultSongs = songsRef.whereEqualTo("artist", results.getFittingSearchKey());
         resultSongs.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -255,8 +264,8 @@ public class PlaylistActivity extends AppCompatActivity {
                         resultSong = document.toObject(Song.class);
                         results.addResult(resultSong);
                     }
-                    if (!results.getResults().isEmpty())
-                        listview.setAdapter(new ResultsAdapter(PlaylistActivity.this, results.getResults()));
+                    listview.setAdapter(new ResultsAdapter(PlaylistActivity.this, results.getResults()));
+
                 }
             }
         });
@@ -388,10 +397,7 @@ public class PlaylistActivity extends AppCompatActivity {
                     @Override
                     public void onCompletion(MediaPlayer mp) {
                         // reset media bar an play next song
-                        realtimeLength = 0;
-                        handler.removeCallbacks(updater);
-                        updateTimer();
-                        seekBar.setProgress(0);
+                        resetMediaPlayerUI();
                         if (playlist!=null)
                             playNextSong();
                         else
@@ -450,6 +456,19 @@ public class PlaylistActivity extends AppCompatActivity {
         timerTxt.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(realtimeLength),
                 TimeUnit.MILLISECONDS.toSeconds(realtimeLength)
                         - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(realtimeLength))));
+    }
+
+    /**
+     * resetMediaPlayerUI function resets the UI of the media player
+     */
+    void resetMediaPlayerUI()
+    {
+        realtimeLength = 0;
+        handler.removeCallbacks(updater);
+        updateTimer();
+        seekBar.setProgress(0);
+        currentSongTxt.setText("");
+        currentArtistTxt.setText("");
     }
 
 
