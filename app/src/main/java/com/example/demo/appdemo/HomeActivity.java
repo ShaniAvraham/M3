@@ -11,17 +11,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.GridView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import android.os.Handler;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
@@ -30,12 +36,16 @@ public class HomeActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
+    private User currentUser;
+    FirebaseUser user;
+
     final Handler handler = new Handler();
 
     // UI components
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
     GridView gridview;
+    TextView userName, playlistNum;
 
     String[] playlistNameList;
     List<String> temp = new ArrayList<>();
@@ -56,8 +66,9 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         db = FirebaseFirestore.getInstance();
+        user = FirebaseAuth.getInstance().getCurrentUser();
 
-        // Darwer menu
+        // Drawer menu
         mDrawerLayout = findViewById(R.id.activity_main);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.Open, R.string.Close);
         mDrawerLayout.addDrawerListener(mToggle);
@@ -68,6 +79,13 @@ public class HomeActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setupDrawerContent(nvDrawer);
 
+
+        View header = nvDrawer.getHeaderView(0);
+        userName = (TextView) header.findViewById(R.id.name);
+        playlistNum = (TextView) header.findViewById(R.id.playlist_num);
+        getUserDetails();
+        // TODO: update UI with user details
+
         // display the home page playlists
         gridview = findViewById(R.id.customgrid);
         readPlaylists();
@@ -75,7 +93,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         if (mToggle.onOptionsItemSelected(item))
             return true;
 
@@ -84,15 +102,16 @@ public class HomeActivity extends AppCompatActivity {
 
     /**
      * selectedIterItem function receives a menu item and launches the matching activity
+     *
      * @param menuItem the selected menu item
      */
-    public void selectIterDrawer(MenuItem menuItem){
+    public void selectIterDrawer(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.home:
                 break;
 
             case R.id.search:
-                Intent intent= new Intent(HomeActivity.this, PlaylistActivity.class);
+                Intent intent = new Intent(HomeActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
                 break;
@@ -109,7 +128,7 @@ public class HomeActivity extends AppCompatActivity {
         mDrawerLayout.closeDrawers();
     }
 
-    private void setupDrawerContent(NavigationView navigationView){
+    private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -123,8 +142,7 @@ public class HomeActivity extends AppCompatActivity {
      * readPlaylist function reads the names of the home page playlists from the database and
      * displays them
      */
-    public void readPlaylists()
-    {
+    public void readPlaylists() {
         // read playlists data from the database
         Task<QuerySnapshot> playlists = db.collection("static playlists")
                 .get()
@@ -132,8 +150,7 @@ public class HomeActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            if (task.getResult()!=null)
-                            {
+                            if (task.getResult() != null) {
                                 // iterate the names of the playlists
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     String name = document.getId();
@@ -145,12 +162,41 @@ public class HomeActivity extends AppCompatActivity {
                                 temp.toArray(playlistNameList);
                                 gridview.setAdapter(new CustomAdapter(HomeActivity.this, playlistNameList, playlistImages));
                             }
-                        }
-                        else
-                        {
+                        } else {
                             Log.w(TAG, "Error getting documents.!!!", task.getException());
                         }
                     }
                 });
+    }
+
+    void getUserDetails() {
+        if (user != null) {
+            // read current user user details data from the database
+            DocumentReference docRef = db.collection("users").document(user.getUid());
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            currentUser = document.toObject(User.class);
+                            userName.setText(user.getEmail());
+                            Log.w(TAG, "!@!"+currentUser.toString());
+                            Log.w(TAG, "!@!"+ Arrays.toString(currentUser.getPlaylistNames()));
+                            Log.w(TAG, "!@!"+currentUser.getPlaylistNumber());
+
+                            //TODO - check if user has been read correctly
+                            playlistNum.setText((String.valueOf(currentUser.getPlaylistNumber())));
+                        } else {
+                            Log.d(TAG, "No such document");
+                        }
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
+
+
     }
 }

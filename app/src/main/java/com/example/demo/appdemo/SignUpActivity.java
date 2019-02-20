@@ -16,12 +16,15 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class SignUpActivity extends AppCompatActivity {
 
     private static final String TAG = ".SignUpActivity";
 
     private FirebaseAuth mAuth;
+
+    private FirebaseFirestore db;
 
     // UI components
     private EditText emailField, passwordField;
@@ -38,6 +41,8 @@ public class SignUpActivity extends AppCompatActivity {
         passwordField = findViewById(R.id.password);
 
         mAuth = FirebaseAuth.getInstance();
+
+        db = FirebaseFirestore.getInstance();
 
 
         // sign up page button onClick
@@ -74,6 +79,8 @@ public class SignUpActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+                            if (user!=null)
+                                addNewUser(user);
                             Intent intent = new Intent(SignUpActivity.this, HomeActivity.class);
                             startActivity(intent);
                         }
@@ -93,5 +100,17 @@ public class SignUpActivity extends AppCompatActivity {
      */
     private void toastMessage(String message){
         Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * addNewUser funcion receives a user and adds it to the database
+     *
+     * @param newUser (FirebaseUser) the user to add
+     */
+    private void addNewUser(FirebaseUser newUser)
+    {
+        User user = new User(0, null);
+        Log.w(TAG, "!@!id " + newUser.getUid());
+        db.collection("users").document(newUser.getUid()).set(user);
     }
 }
