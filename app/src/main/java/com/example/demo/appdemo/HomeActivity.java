@@ -186,7 +186,7 @@ public class HomeActivity extends AppCompatActivity {
                             Log.w(TAG, "!@!"+currentUser.getPlaylistNumber());
 
                             //TODO - check if user has been read correctly
-                            playlistNum.setText((String.valueOf(currentUser.getPlaylistNumber())));
+                            playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
                         } else {
                             Log.d(TAG, "No such document");
                         }
