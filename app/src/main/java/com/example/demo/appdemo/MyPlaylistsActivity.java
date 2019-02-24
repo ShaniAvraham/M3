@@ -3,8 +3,6 @@ package com.example.demo.appdemo;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +11,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -23,16 +22,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import android.os.Handler;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class HomeActivity extends AppCompatActivity {
+public class MyPlaylistsActivity extends AppCompatActivity {
 
-    private static final String TAG = ".HomeActivity";
+    private static final String TAG = ".MyPlaylistsActivity";
 
     private FirebaseFirestore db;
 
@@ -45,23 +41,14 @@ public class HomeActivity extends AppCompatActivity {
     GridView gridview;
     TextView userName, playlistNum;
 
-    String[] playlistNameList;
-    List<String> temp = new ArrayList<>();
 
     // TODO: add photos to server (instead of using res)
-    int[] playlistImages = {
-            R.mipmap.chill_icon,
-            R.mipmap.party_icon,
-            R.mipmap.pop_icon,
-            R.mipmap.rock_icon,
-            R.mipmap.summer_icon,
-            R.mipmap.trend_icon,};
-
+    int[] playlistImages = {};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_my_playlists);
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
@@ -85,8 +72,6 @@ public class HomeActivity extends AppCompatActivity {
 
         // display the home page playlists
         gridview = findViewById(R.id.customgrid);
-        readPlaylists();
-
     }
 
     @Override
@@ -105,21 +90,21 @@ public class HomeActivity extends AppCompatActivity {
     public void selectIterDrawer(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.home:
+                startActivity(new Intent(MyPlaylistsActivity.this, HomeActivity.class));
                 break;
 
             case R.id.search:
-                Intent intent = new Intent(HomeActivity.this, PlaylistActivity.class);
+                Intent intent = new Intent(MyPlaylistsActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
                 break;
 
             case R.id.my_playlists:
-                startActivity(new Intent(HomeActivity.this, MyPlaylistsActivity.class));
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                startActivity(new Intent(MyPlaylistsActivity.this, MainActivity.class));
                 break;
 
             default:
@@ -140,34 +125,12 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     /**
-     * readPlaylist function reads the names of the home page playlists from the database and
-     * displays them
+     * showUserPlaylists function shows the current user's playlists
      */
-    public void readPlaylists() {
-        // read playlists data from the database
-        Task<QuerySnapshot> playlists = db.collection("static playlists")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            if (task.getResult() != null) {
-                                // iterate the names of the playlists
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    String name = document.getId();
-                                    temp.add(name);
-                                    Log.d(TAG, document.getId() + " => !!!" + document.getData() + document.getData());
-                                }
-                                // call the CostumeAdapter of the gridview with the playlists details
-                                playlistNameList = new String[temp.size()];
-                                temp.toArray(playlistNameList);
-                                gridview.setAdapter(new CustomAdapter(HomeActivity.this, playlistNameList, playlistImages));
-                            }
-                        } else {
-                            Log.w(TAG, "Error getting documents.!!!", task.getException());
-                        }
-                    }
-                });
+    public void showUserPlaylists() {
+        // read playlists
+        Log.w(TAG, "!@! inside showUserPlaylists");
+        gridview.setAdapter(new MyPlaylistsAdapter(MyPlaylistsActivity.this, currentUser.getPlaylistNames(), playlistImages));
     }
 
     void getUserDetails() {
@@ -183,6 +146,9 @@ public class HomeActivity extends AppCompatActivity {
                             currentUser = document.toObject(User.class);
                             userName.setText(user.getEmail());
                             playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
+                            Log.w(TAG, "!@!set user info successfully");
+                            showUserPlaylists();
+
                         } else {
                             Log.d(TAG, "No such document");
                         }
