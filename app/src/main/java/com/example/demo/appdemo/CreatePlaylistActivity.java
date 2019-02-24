@@ -22,6 +22,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
+
 public class CreatePlaylistActivity extends AppCompatActivity {
 
     private static final String TAG = ".CreatePlaylistActivity";
@@ -73,18 +75,21 @@ public class CreatePlaylistActivity extends AppCompatActivity {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String playlistName = nameField.getText().toString();
+                // get the text from the name field (in the fitting database format)
+                String playlistName = getFittingSearchKey(nameField.getText().toString());
                 if (playlistName.equals(""))
                     playlistName = defaultName;
+                else
+                {
+                    if(currentUser.getPlaylistNumber()>0 && currentUser.getPlaylistNames().contains(playlistName))
+                        playlistName = checkForDouble(playlistName, 1);
+                }
 
                 //TODO: update users' playlist number + playlist name locally & write to database
-                //TODO: continue to next activity which presents "no songs yet" message and directs to search
 
                 Intent intent = new Intent(CreatePlaylistActivity.this, EmptyPlaylistActivity.class);
                 intent.putExtra("name", playlistName);
                 startActivity(intent);
-
-
 
             }
         });
@@ -177,5 +182,45 @@ public class CreatePlaylistActivity extends AppCompatActivity {
             defaultName += " " + String.valueOf(currentUser.getPlaylistNumber());
             nameField.setText(defaultName);
         }
+    }
+
+    /**
+     * checkForDouble function is called when the playlist's name already exists, and returns the
+     * correct name
+     *
+     * @param name (String) the original name
+     * @param num (String) the number to begin with
+     *
+     * @return (String) the correct playlist's name
+     */
+    String checkForDouble(String name, int num)
+    {
+        Log.w(TAG, "!@! entered checkForDouble");
+        if(currentUser.getPlaylistNumber()>0 && currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
+            return checkForDouble(name, num+1);
+        Log.w(TAG, "!@! finale name " + name + String.valueOf(num));
+        return name + String.valueOf(num);
+    }
+
+    /**
+     * getFittingSearchKey function returns the search key in a fitting database search format
+     *
+     * @return (String) the fitting search format key
+     */
+    public String getFittingSearchKey(String key)
+    {
+        char[] chars = key.toLowerCase().toCharArray();
+        boolean found = false;
+        for (int i = 0; i < chars.length; i++) {
+            if (!found && Character.isLetter(chars[i])) {
+                chars[i] = Character.toUpperCase(chars[i]);
+                found = true;
+            }
+            else if (Character.isWhitespace(chars[i]))
+            {
+                found = false;
+            }
+        }
+        return String.valueOf(chars);
     }
 }

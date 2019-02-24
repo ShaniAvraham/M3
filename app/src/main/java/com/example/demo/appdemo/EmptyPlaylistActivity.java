@@ -78,6 +78,7 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         playlistNum = header.findViewById(R.id.playlist_num);
         getUserDetails();
 
+        // when the search button start SearchActivity
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

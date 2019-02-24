@@ -2,17 +2,17 @@ package com.example.demo.appdemo;
 
 import android.support.annotation.NonNull;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class User {
 
     private int playlistNumber;
-    private String[] playlistNames;
+    private List<String> playlistNames;
 
     public User()
     {}
 
-    public User(int playlistNum, String[] playArr)
+    public User(int playlistNum, List<String> playArr)
     {
         playlistNumber = playlistNum;
         playlistNames = playArr;
@@ -26,11 +26,11 @@ public class User {
         this.playlistNumber = playlistNumber;
     }
 
-    public String[] getPlaylistNames() {
+    public List<String> getPlaylistNames() {
         return playlistNames;
     }
 
-    public void setPlaylistNames(String[] playlists) {
+    public void setPlaylistNames(List<String> playlists) {
         this.playlistNames = playlists;
     }
 
@@ -39,9 +39,9 @@ public class User {
         playlistNumber++;
     }
 
-    /*@NonNull
+    @NonNull
     @Override
     public String toString() {
-        return "playlists number: " + playlistNumber + ", playlists names: " + Arrays.toString(playlistNames);
-    }*/
+        return "playlists number: " + playlistNumber + ", playlists names: " + playlistNames;
+    }
 }

@@ -129,8 +129,8 @@ public class MyPlaylistsActivity extends AppCompatActivity {
      */
     public void showUserPlaylists() {
         // read playlists
-        Log.w(TAG, "!@! inside showUserPlaylists");
-        gridview.setAdapter(new MyPlaylistsAdapter(MyPlaylistsActivity.this, currentUser.getPlaylistNames(), playlistImages));
+        String[] names = currentUser.getPlaylistNames().toArray(new String[currentUser.getPlaylistNumber()]);
+        gridview.setAdapter(new MyPlaylistsAdapter(MyPlaylistsActivity.this, names, playlistImages));
     }
 
     void getUserDetails() {
@@ -146,7 +146,6 @@ public class MyPlaylistsActivity extends AppCompatActivity {
                             currentUser = document.toObject(User.class);
                             userName.setText(user.getEmail());
                             playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
-                            Log.w(TAG, "!@!set user info successfully");
                             showUserPlaylists();
 
                         } else {
