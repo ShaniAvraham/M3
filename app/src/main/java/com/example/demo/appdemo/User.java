@@ -2,6 +2,7 @@ package com.example.demo.appdemo;
 
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class User {
@@ -34,8 +35,20 @@ public class User {
         this.playlistNames = playlists;
     }
 
-    public void increasePlaylistNumber()
+    /**
+     * addPlaylist function adds a new playlist to user
+     * @param name (String) the playlist's name
+     */
+    public void addPlaylist(String name)
     {
+        if (playlistNames!=null) {
+            playlistNames.add(name);
+        }
+
+        else {
+            playlistNames = new ArrayList<>();
+            playlistNames.add(name);
+        }
         playlistNumber++;
     }
 

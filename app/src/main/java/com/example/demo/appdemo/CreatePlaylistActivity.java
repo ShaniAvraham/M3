@@ -15,14 +15,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class CreatePlaylistActivity extends AppCompatActivity {
 
@@ -79,13 +83,12 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                 String playlistName = getFittingSearchKey(nameField.getText().toString());
                 if (playlistName.equals(""))
                     playlistName = defaultName;
-                else
-                {
-                    if(currentUser.getPlaylistNumber()>0 && currentUser.getPlaylistNames().contains(playlistName))
+                else {
+                    if (currentUser.getPlaylistNumber() > 0 && currentUser.getPlaylistNames().contains(playlistName))
                         playlistName = checkForDouble(playlistName, 1);
                 }
 
-                //TODO: update users' playlist number + playlist name locally & write to database
+                addNewPlaylist(playlistName);
 
                 Intent intent = new Intent(CreatePlaylistActivity.this, EmptyPlaylistActivity.class);
                 intent.putExtra("name", playlistName);
@@ -161,7 +164,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                             currentUser = document.toObject(User.class);
                             userName.setText(user.getEmail());
                             playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
-                            setDefaultName();
+                            nameField.setText(defaultName);
                         } else {
                             Log.d(TAG, "No such document");
                         }
@@ -174,30 +177,17 @@ public class CreatePlaylistActivity extends AppCompatActivity {
     }
 
     /**
-     * setDefaultName sets the default name of the new playlist according to the existing user's
-     * number of playlists
-     */
-    void setDefaultName() {
-        if (currentUser.getPlaylistNumber() != 0) {
-            defaultName += " " + String.valueOf(currentUser.getPlaylistNumber());
-            nameField.setText(defaultName);
-        }
-    }
-
-    /**
      * checkForDouble function is called when the playlist's name already exists, and returns the
      * correct name
      *
      * @param name (String) the original name
-     * @param num (String) the number to begin with
-     *
+     * @param num  (String) the number to begin with
      * @return (String) the correct playlist's name
      */
-    String checkForDouble(String name, int num)
-    {
+    String checkForDouble(String name, int num) {
         Log.w(TAG, "!@! entered checkForDouble");
-        if(currentUser.getPlaylistNumber()>0 && currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
-            return checkForDouble(name, num+1);
+        if (currentUser.getPlaylistNumber() > 0 && currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
+            return checkForDouble(name, num + 1);
         Log.w(TAG, "!@! finale name " + name + String.valueOf(num));
         return name + String.valueOf(num);
     }
@@ -207,20 +197,77 @@ public class CreatePlaylistActivity extends AppCompatActivity {
      *
      * @return (String) the fitting search format key
      */
-    public String getFittingSearchKey(String key)
-    {
+    public String getFittingSearchKey(String key) {
         char[] chars = key.toLowerCase().toCharArray();
         boolean found = false;
         for (int i = 0; i < chars.length; i++) {
             if (!found && Character.isLetter(chars[i])) {
                 chars[i] = Character.toUpperCase(chars[i]);
                 found = true;
-            }
-            else if (Character.isWhitespace(chars[i]))
-            {
+            } else if (Character.isWhitespace(chars[i])) {
                 found = false;
             }
         }
         return String.valueOf(chars);
+    }
+
+    /**
+     * addNewPlaylist function adds the new playlist to the database - it updates the user fields
+     * and creates / updates the user's playlist collection
+     *
+     * @param name the playlist's name
+     */
+    void addNewPlaylist(String name) {
+        // change details locally
+        currentUser.addPlaylist(name);
+
+        // update database user data
+        DocumentReference userRef = db.collection("users").document(user.getUid());
+
+        // add playlist name
+        userRef.update("playlistNames", FieldValue.arrayUnion(name))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // increase playlists number
+        userRef.update("playlistNumber", currentUser.getPlaylistNumber())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // create a new collection for the new playlist or update existing one
+        Playlist newPlaylist = new Playlist(name, new HashMap<String, String>());
+        userRef.collection("Playlists").document(name).set(newPlaylist)
+        .addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "!@! Document successfully created!");
+            }
+        })
+        .addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "!@! Error creating document", e);
+            }
+        });
     }
 }

@@ -128,8 +128,14 @@ public class MyPlaylistsActivity extends AppCompatActivity {
      * showUserPlaylists function shows the current user's playlists
      */
     public void showUserPlaylists() {
+        String[] names;
         // read playlists
-        String[] names = currentUser.getPlaylistNames().toArray(new String[currentUser.getPlaylistNumber()]);
+        if (currentUser.getPlaylistNumber()>0) {
+            names = currentUser.getPlaylistNames().toArray(new String[currentUser.getPlaylistNumber()]);
+        }
+        else {
+            names = new String[0];
+        }
         gridview.setAdapter(new MyPlaylistsAdapter(MyPlaylistsActivity.this, names, playlistImages));
     }
 
