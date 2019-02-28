@@ -78,6 +78,16 @@ public class SearchResults{
         return results.get(indexPrev);
     }
 
+    String getSongArtist(String songName)
+    {
+        for (Song s: results)
+        {
+            if(s.getName().equals(songName))
+                return s.getArtist();
+        }
+        return "";
+    }
+
     /**
      * getFittingSearchKey function returns the search key in a fitting database search format
      *

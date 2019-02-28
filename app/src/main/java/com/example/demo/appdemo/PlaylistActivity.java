@@ -1,14 +1,16 @@
 package com.example.demo.appdemo;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,7 +21,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -28,14 +34,9 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 
@@ -65,6 +66,9 @@ public class PlaylistActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
+    private User currentUser;
+    FirebaseUser user;
+
     final Handler handler = new Handler();
     Runnable updater;
 
@@ -75,6 +79,11 @@ public class PlaylistActivity extends AppCompatActivity {
         setContentView(R.layout.activity_playlist);
 
         db = FirebaseFirestore.getInstance();
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        getUserDetails();
+
+        //TODO: add drawer menu
 
         playlistNameTxt = findViewById(R.id.playlist_name);
         listview = findViewById(R.id.listview);
@@ -100,8 +109,7 @@ public class PlaylistActivity extends AppCompatActivity {
         }
 
         // Search page
-        if (playlistName.equals("Search"))
-        {
+        if (playlistName.equals("Search")) {
             searchView = findViewById(R.id.search_view);
 
             // set UI to search page
@@ -128,8 +136,7 @@ public class PlaylistActivity extends AppCompatActivity {
         }
 
         // Static playlist
-        else
-        {
+        else {
             playlistNameTxt.setText(playlistName);
             // display the selected playlist songs
             getCurrentPlaylist();
@@ -167,13 +174,11 @@ public class PlaylistActivity extends AppCompatActivity {
         rewindButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (currentSong.getName()!=null) {
-                    if (playlist!=null) {
+                if (currentSong.getName() != null) {
+                    if (playlist != null) {
                         playPreviosSong();
-                    }
-                    else {
-                        if (!results.getResults().isEmpty())
-                        {
+                    } else {
+                        if (!results.getResults().isEmpty()) {
                             currentSong = results.getPrevSong(currentSong);
                             playCurrentSong();
                         }
@@ -187,13 +192,11 @@ public class PlaylistActivity extends AppCompatActivity {
         forwardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (currentSong.getName()!=null) {
-                    if (playlist!=null) {
+                if (currentSong.getName() != null) {
+                    if (playlist != null) {
                         playNextSong();
-                    }
-                    else {
-                        if (!results.getResults().isEmpty())
-                        {
+                    } else {
+                        if (!results.getResults().isEmpty()) {
                             currentSong = results.getNextSong(currentSong);
                             playCurrentSong();
                         }
@@ -223,6 +226,7 @@ public class PlaylistActivity extends AppCompatActivity {
     /**
      * getSearchResults function reads the matching results of the current search from the database and
      * displays them
+     *
      * @param searchText (String) the text that the user searched
      */
     public void getSearchResults(final String searchText) {
@@ -273,8 +277,7 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
 
-    void playSelectedResult(int index)
-    {
+    void playSelectedResult(int index) {
         currentSong = results.getResults().get(index);
         playCurrentSong();
     }
@@ -398,10 +401,9 @@ public class PlaylistActivity extends AppCompatActivity {
                     public void onCompletion(MediaPlayer mp) {
                         // reset media bar an play next song
                         resetMediaPlayerUI();
-                        if (playlist!=null)
+                        if (playlist != null)
                             playNextSong();
-                        else
-                        {
+                        else {
                             currentSong = results.getNextSong(currentSong);
                             playCurrentSong();
                         }
@@ -461,8 +463,7 @@ public class PlaylistActivity extends AppCompatActivity {
     /**
      * resetMediaPlayerUI function resets the UI of the media player
      */
-    void resetMediaPlayerUI()
-    {
+    void resetMediaPlayerUI() {
         realtimeLength = 0;
         handler.removeCallbacks(updater);
         updateTimer();
@@ -471,6 +472,157 @@ public class PlaylistActivity extends AppCompatActivity {
         currentArtistTxt.setText("");
     }
 
+    /**
+     * popDialog function pops the option dialog, which presents the user's playlists
+     *
+     * @param songName (String) the chosen song's name
+     */
+    void popDialog(final String songName) {
+        final String[] options = currentUser.getPlaylistNames().toArray(new String[0]);
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add to playlist:");
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // the user clicked on options[which]
+
+                // song added from search
+                if (playlistName.equals("Search"))
+                    //TODO: add songs from search, not only from static playlist
+                    addResultToPlaylist(songName, options[which]);
+
+                // song added from static playlist
+                else
+                    addSongToPlaylist(songName, options[which]);
+            }
+        });
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Cancel
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    void addSongToPlaylist(final String songName, String playlistName)
+    {
+        Log.w(TAG, "!@! entered addSongToPlaylist!!!");
+        final DocumentReference destPlaylistsRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
+        destPlaylistsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null) {
+                        Playlist destPlaylist = document.toObject(Playlist.class);
+                        destPlaylist.setSongNames();
+                        // an array of the songs' names
+                        List<String>  destSongNames = Arrays.asList(destPlaylist.getSongsNames());
+
+                        Log.w(TAG, "!@! " + destSongNames);
+
+                        if(!destSongNames.contains(songName))
+                        {
+                            Log.w(TAG, "!@! song " + songName);
+                            Log.w(TAG, "!@! artist " + playlist.getSongs().get(songName));
+                            destPlaylistsRef.update("songs."+songName,  playlist.getSongs().get(songName))
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Log.d(TAG, "!@! added song to playlist!");
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "!@! Error while adding song", e);
+                                        }
+                                    });
+                        }
+
+
+                    }
+                    Log.d(TAG, "DocumentSnapshot data: !!!" + playlist);
+                } else {
+                    Log.d(TAG, "get failed with !!!", task.getException());
+                }
+            }
+        });
+    }
+
+    void addResultToPlaylist(final String songName, String playlistName)
+    {
+        Log.w(TAG, "!@! entered addSongToPlaylist!!!");
+        final DocumentReference destPlaylistsRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
+        destPlaylistsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null) {
+                        Playlist destPlaylist = document.toObject(Playlist.class);
+                        destPlaylist.setSongNames();
+                        // an array of the songs' names
+                        List<String> destSongNames = Arrays.asList(destPlaylist.getSongsNames());
+
+                        Log.w(TAG, "!@! " + destSongNames);
+
+                        if(!destSongNames.contains(songName))
+                        {
+                            Log.w(TAG, "!@! song " + songName);
+                            Log.w(TAG, "!@! artist " + results.getSongArtist(songName));
+                            destPlaylistsRef.update("songs."+songName,  results.getSongArtist(songName))
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Log.d(TAG, "!@! added song to playlist!");
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "!@! Error while adding song", e);
+                                        }
+                                    });
+                        }
+
+
+                    }
+                    Log.d(TAG, "DocumentSnapshot data: !!!" + playlist);
+                } else {
+                    Log.d(TAG, "get failed with !!!", task.getException());
+                }
+            }
+        });
+    }
+
+    void getUserDetails() {
+        if (user != null) {
+            // read current user user details data from the database
+            DocumentReference docRef = db.collection("users").document(user.getUid());
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            currentUser = document.toObject(User.class);
+                            /*userName.setText(user.getEmail());
+                            playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
+                            nameField.setText(defaultName);*/
+                        } else {
+                            Log.d(TAG, "No such document");
+                        }
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
+    }
 
     /**
      * onStop function stops the played song (if a song is played) when the activity is stopped

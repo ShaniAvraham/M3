@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.List;
@@ -72,7 +73,7 @@ public class ResultsAdapter extends BaseAdapter {
         ResultsAdapter.Holder holder=new ResultsAdapter.Holder();
         View rowView;
 
-        rowView = inflater.inflate(R.layout.result_list, null);
+        rowView = inflater.inflate(R.layout.song_list, null);
         holder.song_txt = rowView.findViewById(R.id.songs);
         holder.artist_txt = rowView.findViewById(R.id.artists);
 
@@ -89,6 +90,15 @@ public class ResultsAdapter extends BaseAdapter {
                 }
             });
         }
+
+        // suppose a button id in rawlayout is btn1
+        ImageButton moreButton = (ImageButton) rowView.findViewById(R.id.more_btn);
+        moreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((PlaylistActivity)context).popDialog(result[position]);
+            }
+        });
 
         return rowView;
 

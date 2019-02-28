@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +68,15 @@ public class SongListAdapter extends BaseAdapter{
             public void onClick(View v) {
                 // play the selected song
                 ((PlaylistActivity)context).readSelectedSong(result[position]);
+            }
+        });
+
+        // suppose a button id in rawlayout is btn1
+        ImageButton moreButton = (ImageButton) rowView.findViewById(R.id.more_btn);
+        moreButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((PlaylistActivity)context).popDialog(result[position]);
             }
         });
 
