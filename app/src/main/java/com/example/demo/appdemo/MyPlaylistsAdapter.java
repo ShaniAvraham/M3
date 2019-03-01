@@ -95,6 +95,7 @@ public class MyPlaylistsAdapter extends BaseAdapter {
                     // Auto-generated method stub
                     Intent intent = new Intent(context, PlaylistActivity.class);
                     intent.putExtra("name", result[position]);
+                    intent.putExtra("type", "personal");
                     context.startActivity(intent);
                 }
             }

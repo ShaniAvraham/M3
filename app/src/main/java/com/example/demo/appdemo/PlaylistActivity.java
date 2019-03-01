@@ -138,8 +138,15 @@ public class PlaylistActivity extends AppCompatActivity {
         // Static playlist
         else {
             playlistNameTxt.setText(playlistName);
+            DocumentReference playlistRef;
+            // set database path
+            String playlistType = (String) bd.get("type");
+            if (playlistType.equals("static"))
+                playlistRef = db.collection("static playlists").document(playlistName);
+            else
+                playlistRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
             // display the selected playlist songs
-            getCurrentPlaylist();
+            getCurrentPlaylist(playlistRef);
         }
 
         Log.w(TAG, "!!!playlist name" + playlistName);
@@ -286,11 +293,10 @@ public class PlaylistActivity extends AppCompatActivity {
      * getCurrentPlaylist function reads the songs of the current playlist from the database and
      * displays them
      */
-    public void getCurrentPlaylist() {
+    public void getCurrentPlaylist(DocumentReference playlistRef) {
         // read songs data from the database
         Log.w(TAG, "entered getCurrentPlaylist!!!");
-        DocumentReference playlistsRef = db.collection("static playlists").document(playlistName);
-        playlistsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        playlistRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
@@ -507,6 +513,12 @@ public class PlaylistActivity extends AppCompatActivity {
         builder.show();
     }
 
+    /**
+     * addSongToPlaylist receives a song's name and a playlist's name and adds the song to te playlist
+     *
+     * @param songName (String) the song (name) to add
+     * @param playlistName (String) the playlist (name) to add the song to
+     */
     void addSongToPlaylist(final String songName, String playlistName)
     {
         Log.w(TAG, "!@! entered addSongToPlaylist!!!");
@@ -553,6 +565,12 @@ public class PlaylistActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * addResutToPlaylist receives a result song's name and a playlist's name and adds the song to te playlist
+     *
+     * @param songName (String) the result song (name) to add
+     * @param playlistName (String) the playlist (name) to add the song to
+     */
     void addResultToPlaylist(final String songName, String playlistName)
     {
         Log.w(TAG, "!@! entered addSongToPlaylist!!!");

@@ -75,6 +75,7 @@ public class CustomAdapter extends BaseAdapter{
                 // Auto-generated method stub
                 Intent intent= new Intent(context, PlaylistActivity.class);
                 intent.putExtra("name", result[position]);
+                intent.putExtra("type", "static");
                 context.startActivity(intent);
             }
         });
