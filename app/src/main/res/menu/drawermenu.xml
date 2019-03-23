@@ -10,6 +10,10 @@
         android:title="Search"/>
 
     <item
+        android:id="@+id/my_playlists"
+        android:title="My Playlists"/>
+
+    <item
         android:id="@+id/logout"
         android:title="Logout"/>
 </menu>

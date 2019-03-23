@@ -1,22 +1,22 @@
 package com.example.demo.appdemo;
 
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-// Firebase authentication related imports
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.AuthResult;
+
+// Firebase authentication related imports
 
 
 public class MainActivity extends AppCompatActivity {
@@ -52,12 +52,9 @@ public class MainActivity extends AppCompatActivity {
 
                 //TODO: add validation function
                 //TODO: add regular expression for email address and password
-                if(!email.equals("") && !pass.equals(""))
-                {
-                    signIn(email,pass);
-                }
-                else
-                {
+                if (!email.equals("") && !pass.equals("")) {
+                    signIn(email, pass);
+                } else {
                     toastMessage("Please fill in all the fields.");
                 }
             }
@@ -82,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
      * if sign in succeeded, it start HomeActivity
      * else, it displays a message
      *
-     * @param email the typed email
+     * @param email    the typed email
      * @param password the typed password
      */
     private void signIn(String email, String password) {
@@ -96,8 +93,7 @@ public class MainActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                             startActivity(intent);
-                        }
-                        else {
+                        } else {
                             // If sign in failed, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             toastMessage("Authentication failed.");
@@ -109,9 +105,10 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * toastMessage function receives a message and displays
+     *
      * @param message the message to show
      */
-    private void toastMessage(String message){
-        Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+    private void toastMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

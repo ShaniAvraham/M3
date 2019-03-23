@@ -16,13 +16,11 @@ public class Song {
     private String artist;
     private String link;
 
-    public Song()
-    {
+    public Song() {
 
     }
 
-    public Song(String n, String a, String l)
-    {
+    public Song(String n, String a, String l) {
         name = n;
         artist = a;
         link = l;

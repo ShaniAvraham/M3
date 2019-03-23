@@ -8,13 +8,14 @@
     android:scaleType="centerCrop"
     android:padding="30dp">
 
-    <ImageView
+    <!--<ImageView
         android:id="@+id/profile"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:src="@drawable/profile"
         android:scaleType="centerCrop"
-        />
+        />-->
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,24 +25,26 @@
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Shani Avraham"
+            android:text="@string/username"
             android:layout_marginTop="10dp"
             android:layout_marginStart="16dp"
             android:textSize="16sp"
             android:textColor="@color/colorWhite"
             android:textStyle="bold"
+            android:singleLine="true"
             />
 
         <TextView
             android:id="@+id/playlist_num"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Playlists: 3"
+            android:text="@string/my_playlists"
             android:layout_marginTop="10dp"
             android:layout_marginStart="16dp"
             android:textSize="16sp"
             android:textColor="@color/colorWhite"
             android:textStyle="bold"
+            android:singleLine="true"
             />
     </LinearLayout>
 

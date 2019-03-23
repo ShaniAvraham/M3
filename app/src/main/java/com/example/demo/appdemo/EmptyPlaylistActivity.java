@@ -1,19 +1,18 @@
 package com.example.demo.appdemo;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.GridView;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -24,18 +23,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import android.os.Handler;
-import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-public class HomeActivity extends AppCompatActivity {
+public class EmptyPlaylistActivity extends AppCompatActivity {
 
-    private static final String TAG = ".HomeActivity";
+    private static final String TAG = ".EmptyPlaylistActivity";
 
     private FirebaseFirestore db;
 
@@ -45,29 +37,32 @@ public class HomeActivity extends AppCompatActivity {
     // UI components
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    GridView gridview;
     TextView userName, playlistNum;
 
-    String[] playlistNameList;
-    List<String> temp = new ArrayList<>();
+    String playlistName;
 
-    // TODO: add photos to server (instead of using res)
-    int[] playlistImages = {
-            R.mipmap.chill_icon,
-            R.mipmap.party_icon,
-            R.mipmap.pop_icon,
-            R.mipmap.rock_icon,
-            R.mipmap.summer_icon,
-            R.mipmap.trend_icon,};
+    TextView playlistNameTxt;
 
+    Button searchButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_empty_playlist);
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
+
+        playlistNameTxt = findViewById(R.id.playlist_name);
+        searchButton = findViewById(R.id.search_button);
+
+        // set playlist name
+        Intent intent = getIntent();
+        Bundle bd = intent.getExtras();
+        if (bd != null) {
+            playlistName = (String) bd.get("name");
+            playlistNameTxt.setText(playlistName);
+        }
 
         // Drawer menu
         mDrawerLayout = findViewById(R.id.activity_main);
@@ -86,12 +81,17 @@ public class HomeActivity extends AppCompatActivity {
         playlistNum = header.findViewById(R.id.playlist_num);
         getUserDetails();
 
-        // display the home page playlists
-        gridview = findViewById(R.id.customgrid);
-        readPlaylists();
+        // when the search button start SearchActivity
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
+                intent.putExtra("name", "Search");
+                startActivity(intent);
+            }
+        });
 
         updateDetails();
-
     }
 
     @Override
@@ -110,21 +110,22 @@ public class HomeActivity extends AppCompatActivity {
     public void selectIterDrawer(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.home:
+                startActivity(new Intent(EmptyPlaylistActivity.this, HomeActivity.class));
                 break;
 
             case R.id.search:
-                Intent intent = new Intent(HomeActivity.this, PlaylistActivity.class);
+                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
                 break;
 
             case R.id.my_playlists:
-                startActivity(new Intent(HomeActivity.this, MyPlaylistsActivity.class));
+                startActivity(new Intent(EmptyPlaylistActivity.this, MyPlaylistsActivity.class));
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                startActivity(new Intent(EmptyPlaylistActivity.this, MainActivity.class));
                 break;
 
             default:
@@ -142,37 +143,6 @@ public class HomeActivity extends AppCompatActivity {
                 return true;
             }
         });
-    }
-
-    /**
-     * readPlaylist function reads the names of the home page playlists from the database and
-     * displays them
-     */
-    public void readPlaylists() {
-        // read playlists data from the database
-        Task<QuerySnapshot> playlists = db.collection("static playlists")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            if (task.getResult() != null) {
-                                // iterate the names of the playlists
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    String name = document.getId();
-                                    temp.add(name);
-                                    Log.d(TAG, document.getId() + " => !!!" + document.getData() + document.getData());
-                                }
-                                // call the CostumeAdapter of the gridview with the playlists details
-                                playlistNameList = new String[temp.size()];
-                                temp.toArray(playlistNameList);
-                                gridview.setAdapter(new CustomAdapter(HomeActivity.this, playlistNameList, playlistImages));
-                            }
-                        } else {
-                            Log.w(TAG, "Error getting documents.!!!", task.getException());
-                        }
-                    }
-                });
     }
 
     void getUserDetails() {

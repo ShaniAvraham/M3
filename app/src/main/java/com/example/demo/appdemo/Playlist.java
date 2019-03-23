@@ -40,6 +40,10 @@ public class Playlist implements PlayableList{
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Map<String, String> getSongs() {
         return songs;
     }
@@ -112,10 +116,24 @@ public class Playlist implements PlayableList{
     @Override
     public String getPrevSong(String currentSong) {
         int indexCurrent = songNames.indexOf(currentSong);
+        if (indexCurrent==-1)
+        {
+            indexCurrent=1;
+        }
         int indexPrev = indexCurrent - 1;
         if (indexPrev==-1)
             indexPrev = songNames.size() - 1;
         return songNames.get(indexPrev);
+    }
+
+    /**
+     * removeSong removes a song from this playlist
+     * @param songName the song to remove
+     */
+    void removeSong(String songName)
+    {
+        songs.remove(songName);
+        songNames.remove(songName);
     }
 
 

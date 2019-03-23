@@ -8,4 +8,6 @@
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorGray">#7C858E</color>
 
+    <color name="backgroundWhite">#FAFAFA</color>
+
 </resources>

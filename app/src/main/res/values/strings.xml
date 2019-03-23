@@ -16,5 +16,12 @@
     <string name="search_hint">Search</string>
     <string name="search">SEARCH</string>
     <string name="no_results">No search results for: </string>
+    <string name="create_playlist">Create Playlist</string>
+    <string name="new_playlist">New Playlist</string>
+    <string name="playlist_name">Playlist Name</string>
+    <string name="playlist_name_field">Playlist Name:</string>
+    <string name="next">NEXT</string>
+    <string name="empty_playlist_msg">There are no songs in your playlist yet. Try searching for new songs!</string>
+    <string name="cancel">Cancel</string>
 
 </resources>
