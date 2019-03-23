@@ -330,12 +330,6 @@ public class PlaylistActivity extends AppCompatActivity {
                         playlist.setSongNames();
                         // an array of the songs' names
                         songs = playlist.getSongsNames();
-                        if (playlistType.equals("personal") && playlist.getSongs().isEmpty())
-                        {
-                            Intent intent = new Intent(PlaylistActivity.this, EmptyPlaylistActivity.class);
-                            intent.putExtra("name", playlist.getName());
-                            startActivity(intent);
-                        }
                         //an array of the artists
                         artists = playlist.getArtistsNames();
                         // call the SongListAdapter of the listview with the songs details
@@ -888,9 +882,12 @@ public class PlaylistActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * removeSongFromPlaylist removes a song from the playlist
+     * @param songName the song's name to remove
+     */
     void removeSongFromPlaylist(final String songName) {
-        // TODO: check if song is currently played
-        // remove the old name from user's playlists
+        // remove the song from the current playlist
         playlist.removeSong(songName);
 
         DocumentReference playlistRef = db.collection("users").document(user.getUid()).collection("Playlists").document(playlist.getName());
