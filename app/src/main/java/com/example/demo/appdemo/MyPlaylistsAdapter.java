@@ -91,7 +91,6 @@ public class MyPlaylistsAdapter extends BaseAdapter {
                     intent.putExtra("name", result[position]);
                     context.startActivity(intent);
                 } else {
-                    //TODO: make sure that the activity sends matching information and next activity reads from users' playlists
                     // Auto-generated method stub
                     Intent intent = new Intent(context, PlaylistActivity.class);
                     intent.putExtra("name", result[position]);

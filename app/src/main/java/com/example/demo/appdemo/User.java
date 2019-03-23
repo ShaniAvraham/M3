@@ -52,6 +52,31 @@ public class User {
         playlistNumber++;
     }
 
+    /**
+     * deletePlaylist function deletes a user's playlist
+     * @param name (String) the playlist to delete
+     */
+    public void deletePlaylist(String name)
+    {
+        if (playlistNames.contains(name)) {
+            playlistNames.remove(name);
+            playlistNumber--;
+        }
+    }
+
+    /**
+     * changePlaylistName receives an existing playlist name and the new name for this playlist and
+     * changes it's name
+     *
+     * @param oldName the name of the existing playlist
+     * @param newName the new name
+     */
+    public void changePlaylistName(String oldName, String newName)
+    {
+        playlistNames.remove(oldName);
+        playlistNames.add(newName);
+    }
+
     @NonNull
     @Override
     public String toString() {

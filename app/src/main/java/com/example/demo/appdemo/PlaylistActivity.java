@@ -10,10 +10,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -29,7 +32,10 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -72,6 +78,10 @@ public class PlaylistActivity extends AppCompatActivity {
     final Handler handler = new Handler();
     Runnable updater;
 
+    ImageButton playlistOptionsButton;
+    String[] playlistOptions = {"Change playlist name", "Delete playlist"};
+
+    String playlistType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,13 +150,27 @@ public class PlaylistActivity extends AppCompatActivity {
             playlistNameTxt.setText(playlistName);
             DocumentReference playlistRef;
             // set database path
-            String playlistType = (String) bd.get("type");
+            playlistType = (String) bd.get("type");
             if (playlistType.equals("static"))
                 playlistRef = db.collection("static playlists").document(playlistName);
-            else
+            else {
                 playlistRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
+                // make playlist option button visible
+                playlistOptionsButton = findViewById(R.id.option_btn);
+                playlistOptionsButton.setVisibility(View.VISIBLE);
+                playlistOptionsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        popOptionDialog();
+                    }
+                });
+            }
+
             // display the selected playlist songs
             getCurrentPlaylist(playlistRef);
+
+            // update playlist if changes
+            updatePlaylist(playlistRef);
         }
 
         Log.w(TAG, "!!!playlist name" + playlistName);
@@ -306,7 +330,13 @@ public class PlaylistActivity extends AppCompatActivity {
                         playlist.setSongNames();
                         // an array of the songs' names
                         songs = playlist.getSongsNames();
-                        //an array of the artists'
+                        if (playlistType.equals("personal") && playlist.getSongs().isEmpty())
+                        {
+                            Intent intent = new Intent(PlaylistActivity.this, EmptyPlaylistActivity.class);
+                            intent.putExtra("name", playlist.getName());
+                            startActivity(intent);
+                        }
+                        //an array of the artists
                         artists = playlist.getArtistsNames();
                         // call the SongListAdapter of the listview with the songs details
                         listview.setAdapter(new SongListAdapter(PlaylistActivity.this, songs, artists));
@@ -479,11 +509,53 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     /**
-     * popDialog function pops the option dialog, which presents the user's playlists
+     * popTypeDialog pops an add dialog according to the playlist type (
+     * personal - which includes delete option, and static - which doesn't)
+     * @param songName the song's name
+     */
+    void popTypeDialog(final String songName) {
+        if (playlistType.equals("static"))
+            popAddDialog(songName);
+        else
+        {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Options");
+            builder.setItems(new String[]{"Remove song from playlist", "Add song to another playlist"}, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // the user clicked on options[which]
+                    switch (which) {
+                        // Remove song
+                        case 0:
+                            popRemoveSongDialog(songName);
+                            break;
+
+                        // Add to different
+                        case 1:
+                            popAddDialog(songName);
+                            break;
+
+                    }
+                }
+            });
+            // dismiss dialog if cancel was pressed
+            builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //the user clicked on Cancel
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
+        }
+    }
+
+    /**
+     * popAddDialog function pops the add song option dialog, which presents the user's playlists
      *
      * @param songName (String) the chosen song's name
      */
-    void popDialog(final String songName) {
+    void popAddDialog(final String songName) {
         final String[] options = currentUser.getPlaylistNames().toArray(new String[0]);
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -495,14 +567,14 @@ public class PlaylistActivity extends AppCompatActivity {
 
                 // song added from search
                 if (playlistName.equals("Search"))
-                    //TODO: add songs from search, not only from static playlist
                     addResultToPlaylist(songName, options[which]);
 
-                // song added from static playlist
+                    // song added from static playlist
                 else
                     addSongToPlaylist(songName, options[which]);
             }
         });
+        // dismiss dialog if cancel was pressed
         builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -514,13 +586,341 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     /**
+     * popOptionDialog function pops the add song option dialog, which presents the user's playlists
+     */
+    void popOptionDialog() {
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Options");
+        builder.setItems(playlistOptions, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // the user clicked on options[which]
+
+                switch (which) {
+                    // Change playlist name
+                    case 0:
+                        openNameDialog();
+                        break;
+
+                    case 1:
+                        popDeleteDialog();
+                        break;
+                }
+            }
+        });
+        // dismiss dialog if cancel was pressed
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Cancel
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    /**
+     * popRemoveSongDialog pops a dialog for song removal confirmation
+     * @param songName
+     */
+    void popRemoveSongDialog(final String songName)
+    {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Remove song from playlist");
+        builder.setMessage(String.format("Are you sure you want to remove %s from this playlist?", songName));
+
+        // dismiss dialog if cancel was pressed
+        // (Negative and Positive are reversed)
+        builder.setPositiveButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Cancel
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("Remove", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Delete
+                removeSongFromPlaylist(songName);
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    /**
+     * popDeleteDialog function pops delete dialog, which asks the user if he wants to delete the playlist
+     */
+    void popDeleteDialog() {
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(playlistOptions[1]);
+        builder.setMessage(String.format("Are you sure you want to delete %s?", playlist.getName()));
+
+        // dismiss dialog if cancel was pressed
+        // (Negative and Positive are reversed)
+        builder.setPositiveButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Cancel
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Delete
+                deletePlaylist(playlist.getName());
+                dialog.dismiss();
+                finish();
+            }
+        });
+        builder.show();
+    }
+
+    void openNameDialog() {
+        LayoutInflater inflater = LayoutInflater.from(PlaylistActivity.this);
+        View subView = inflater.inflate(R.layout.dialog_name, null);
+        final EditText nameEditText = (EditText) subView.findViewById(R.id.dialogEditText);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(playlistOptions[0]);
+        nameEditText.setText(playlist.getName());
+        builder.setView(subView);
+        AlertDialog alertDialog = builder.create();
+
+        builder.setNegativeButton("Change", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // change the playlist's name according to the edittext text
+                String newName = getFittingSearchKey(nameEditText.getText().toString());
+                if (!newName.toLowerCase().equals(playlist.getName().toLowerCase())) {
+                    if (currentUser.getPlaylistNumber() > 1 && currentUser.getPlaylistNames().contains(newName))
+                        newName = checkForDouble(playlistName, 1);
+                    changePlaylistName(playlist.getName(), newName);
+                    playlistNameTxt.setText(newName);
+
+                }
+            }
+        });
+
+        builder.setPositiveButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.show();
+    }
+
+    /**
+     * checkForDouble function is called when the playlist's name already exists, and returns the
+     * correct name
+     *
+     * @param name (String) the original name
+     * @param num  (String) the number to begin with
+     * @return (String) the correct playlist's name
+     */
+    String checkForDouble(String name, int num) {
+        Log.w(TAG, "!@! entered checkForDouble");
+        if (currentUser.getPlaylistNumber() > 0 && currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
+            return checkForDouble(name, num + 1);
+        Log.w(TAG, "!@! finale name " + name + String.valueOf(num));
+        return name + String.valueOf(num);
+    }
+
+    /**
+     * getFittingSearchKey function returns the search key in a fitting database search format
+     *
+     * @return (String) the fitting search format key
+     */
+    public String getFittingSearchKey(String key) {
+        char[] chars = key.toLowerCase().toCharArray();
+        boolean found = false;
+        for (int i = 0; i < chars.length; i++) {
+            if (!found && Character.isLetter(chars[i])) {
+                chars[i] = Character.toUpperCase(chars[i]);
+                found = true;
+            } else if (Character.isWhitespace(chars[i])) {
+                found = false;
+            }
+        }
+        return String.valueOf(chars);
+    }
+
+    /**
+     * changePlaylistName function changes the current playlist's name - it updates the user fields
+     * updates the user's playlist collection
+     *
+     * @param newName the playlist's name
+     */
+    void changePlaylistName(String oldName, String newName) {
+
+        // change user details locally
+        currentUser.changePlaylistName(oldName, newName);
+
+        // change playlist details locally
+        playlist.setName(newName);
+
+        // update database user data
+        DocumentReference userRef = db.collection("users").document(user.getUid());
+
+        // remove the old name from user's playlists
+        userRef.update("playlistNames", FieldValue.arrayRemove(oldName))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // add the new name to user's playlist
+        userRef.update("playlistNames", FieldValue.arrayUnion(newName))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // create a new document for the changed name
+        userRef.collection("Playlists").document(newName).set(playlist)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! Document successfully created!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error creating document", e);
+                    }
+                });
+
+        // delete the old document
+        userRef.collection("Playlists").document(oldName).delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! Document successfully created!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error creating document", e);
+                    }
+                });
+    }
+
+    /**
+     * deletePlaylist receives a playlist's name and deletes it
+     *
+     * @param playlistName the playlist's name
+     */
+    void deletePlaylist(String playlistName) {
+        // delete locally
+        currentUser.deletePlaylist(playlistName);
+
+        // update database user data
+        DocumentReference userRef = db.collection("users").document(user.getUid());
+
+        // remove the name from user's playlists
+        userRef.update("playlistNames", FieldValue.arrayRemove(playlistName))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // update playlist number
+        userRef.update("playlistNumber", currentUser.getPlaylistNumber())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // delete the old document
+        userRef.collection("Playlists").document(playlistName).delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! Document successfully created!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error creating document", e);
+                    }
+                });
+
+    }
+
+    void removeSongFromPlaylist(final String songName) {
+        // TODO: check if song is currently played
+        // remove the old name from user's playlists
+        playlist.removeSong(songName);
+
+        DocumentReference playlistRef = db.collection("users").document(user.getUid()).collection("Playlists").document(playlist.getName());
+
+
+        playlistRef.update("songs", playlist.getSongs())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+        getCurrentPlaylist(playlistRef);
+
+    }
+
+
+    /**
      * addSongToPlaylist receives a song's name and a playlist's name and adds the song to te playlist
      *
-     * @param songName (String) the song (name) to add
+     * @param songName     (String) the song (name) to add
      * @param playlistName (String) the playlist (name) to add the song to
      */
-    void addSongToPlaylist(final String songName, String playlistName)
-    {
+    void addSongToPlaylist(final String songName, String playlistName) {
         Log.w(TAG, "!@! entered addSongToPlaylist!!!");
         final DocumentReference destPlaylistsRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
         destPlaylistsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -532,15 +932,14 @@ public class PlaylistActivity extends AppCompatActivity {
                         Playlist destPlaylist = document.toObject(Playlist.class);
                         destPlaylist.setSongNames();
                         // an array of the songs' names
-                        List<String>  destSongNames = Arrays.asList(destPlaylist.getSongsNames());
+                        List<String> destSongNames = Arrays.asList(destPlaylist.getSongsNames());
 
                         Log.w(TAG, "!@! " + destSongNames);
 
-                        if(!destSongNames.contains(songName))
-                        {
+                        if (!destSongNames.contains(songName)) {
                             Log.w(TAG, "!@! song " + songName);
                             Log.w(TAG, "!@! artist " + playlist.getSongs().get(songName));
-                            destPlaylistsRef.update("songs."+songName,  playlist.getSongs().get(songName))
+                            destPlaylistsRef.update("songs." + songName, playlist.getSongs().get(songName))
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void aVoid) {
@@ -566,13 +965,12 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     /**
-     * addResutToPlaylist receives a result song's name and a playlist's name and adds the song to te playlist
+     * addResultToPlaylist receives a result song's name and a playlist's name and adds the song to te playlist
      *
-     * @param songName (String) the result song (name) to add
+     * @param songName     (String) the result song (name) to add
      * @param playlistName (String) the playlist (name) to add the song to
      */
-    void addResultToPlaylist(final String songName, String playlistName)
-    {
+    void addResultToPlaylist(final String songName, String playlistName) {
         Log.w(TAG, "!@! entered addSongToPlaylist!!!");
         final DocumentReference destPlaylistsRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
         destPlaylistsRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -588,11 +986,10 @@ public class PlaylistActivity extends AppCompatActivity {
 
                         Log.w(TAG, "!@! " + destSongNames);
 
-                        if(!destSongNames.contains(songName))
-                        {
+                        if (!destSongNames.contains(songName)) {
                             Log.w(TAG, "!@! song " + songName);
                             Log.w(TAG, "!@! artist " + results.getSongArtist(songName));
-                            destPlaylistsRef.update("songs."+songName,  results.getSongArtist(songName))
+                            destPlaylistsRef.update("songs." + songName, results.getSongArtist(songName))
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void aVoid) {
@@ -640,6 +1037,30 @@ public class PlaylistActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    /**
+     * updatePlaylist function updates the playlist according to changes
+     * @param playlistRef the playlist's database reference
+     */
+    void updatePlaylist(final DocumentReference playlistRef) {
+        playlistRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot,
+                                @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "!@!Current data: " + snapshot.getData());
+                    getCurrentPlaylist(playlistRef);
+                } else {
+                    Log.d(TAG, "!@!Current data: null");
+                }
+            }
+        });
     }
 
     /**

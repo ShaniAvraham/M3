@@ -80,7 +80,16 @@ public class ResultsAdapter extends BaseAdapter {
         holder.song_txt.setText(result[position]);
         holder.artist_txt.setText(artists[position]);
 
-        if (artists[0] != "") {
+        ImageButton moreButton = (ImageButton) rowView.findViewById(R.id.more_btn);
+
+        if (!artists[0].equals("")) {
+            // suppose a button id in rawlayout is btn1
+            moreButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((PlaylistActivity)context).popAddDialog(result[position]);
+                }
+            });
             rowView.setOnClickListener(new View.OnClickListener() {
 
                 @Override
@@ -91,14 +100,10 @@ public class ResultsAdapter extends BaseAdapter {
             });
         }
 
-        // suppose a button id in rawlayout is btn1
-        ImageButton moreButton = (ImageButton) rowView.findViewById(R.id.more_btn);
-        moreButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((PlaylistActivity)context).popDialog(result[position]);
-            }
-        });
+        else
+            moreButton.setVisibility(View.GONE);
+
+
 
         return rowView;
 

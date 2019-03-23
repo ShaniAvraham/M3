@@ -2,6 +2,7 @@ package com.example.demo.appdemo;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -22,8 +23,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -96,6 +99,8 @@ public class CreatePlaylistActivity extends AppCompatActivity {
 
             }
         });
+
+        updateDetails();
 
     }
 
@@ -267,6 +272,30 @@ public class CreatePlaylistActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.w(TAG, "!@! Error creating document", e);
+            }
+        });
+    }
+
+    /**
+     * updateDetails function updates the screen and user info according to user details changes
+     */
+    void updateDetails() {
+        DocumentReference docRef = db.collection("users").document(user.getUid());
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot,
+                                @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "!@!Current data: " + snapshot.getData());
+                    getUserDetails();
+                } else {
+                    Log.d(TAG, "!@!Current data: null");
+                }
             }
         });
     }

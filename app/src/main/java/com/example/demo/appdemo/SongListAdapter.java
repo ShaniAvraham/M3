@@ -76,7 +76,7 @@ public class SongListAdapter extends BaseAdapter{
         moreButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((PlaylistActivity)context).popDialog(result[position]);
+                ((PlaylistActivity)context).popTypeDialog(result[position]);
             }
         });
 
