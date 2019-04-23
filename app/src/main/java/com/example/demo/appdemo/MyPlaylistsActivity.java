@@ -30,7 +30,6 @@ public class MyPlaylistsActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
-    private User currentUser;
     FirebaseUser user;
 
     // UI components
@@ -66,7 +65,6 @@ public class MyPlaylistsActivity extends AppCompatActivity {
         View header = nvDrawer.getHeaderView(0);
         userName = header.findViewById(R.id.name);
         playlistNum = header.findViewById(R.id.playlist_num);
-        getUserDetails();
 
         // display the home page playlists
         gridview = findViewById(R.id.customgrid);
@@ -130,8 +128,8 @@ public class MyPlaylistsActivity extends AppCompatActivity {
     public void showUserPlaylists() {
         String[] names;
         // read playlists
-        if (currentUser.getPlaylistNumber() > 0) {
-            names = currentUser.getPlaylistNames().toArray(new String[currentUser.getPlaylistNumber()]);
+        if (CurrentUser.currentUser.getPlaylistNumber() > 0) {
+            names = CurrentUser.currentUser.getPlaylistNames().toArray(new String[CurrentUser.currentUser.getPlaylistNumber()]);
         } else {
             names = new String[0];
         }
@@ -140,7 +138,7 @@ public class MyPlaylistsActivity extends AppCompatActivity {
 
     void getUserDetails() {
         if (user != null) {
-            // read current user user details data from the database
+            // read current user details data from the database
             DocumentReference docRef = db.collection("users").document(user.getUid());
             docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
@@ -148,9 +146,9 @@ public class MyPlaylistsActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            currentUser = document.toObject(User.class);
+                            CurrentUser.currentUser = document.toObject(User.class);
                             userName.setText(user.getEmail());
-                            playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
+                            playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
                             showUserPlaylists();
 
                         } else {

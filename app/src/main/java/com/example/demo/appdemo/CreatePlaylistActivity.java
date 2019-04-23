@@ -36,7 +36,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
-    private User currentUser;
+    //private User currentUser;
     FirebaseUser user;
 
     // UI components
@@ -72,9 +72,13 @@ public class CreatePlaylistActivity extends AppCompatActivity {
         View header = nvDrawer.getHeaderView(0);
         userName = header.findViewById(R.id.name);
         playlistNum = header.findViewById(R.id.playlist_num);
-        getUserDetails();
 
         nameField = findViewById(R.id.playlist_name_text);
+
+        userName.setText(user.getEmail());
+        playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
+        nameField.setText(defaultName);
+
         nextButton = findViewById(R.id.next_button);
 
         // check when the "next" button is selected and create a playlist with he typed name
@@ -86,7 +90,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                 if (playlistName.equals(""))
                     playlistName = defaultName;
                 else {
-                    if (currentUser.getPlaylistNumber() > 0 && currentUser.getPlaylistNames().contains(playlistName))
+                    if (CurrentUser.currentUser.getPlaylistNumber() > 0 && CurrentUser.currentUser.getPlaylistNames().contains(playlistName))
                         playlistName = checkForDouble(playlistName, 1);
                 }
 
@@ -154,32 +158,6 @@ public class CreatePlaylistActivity extends AppCompatActivity {
         });
     }
 
-
-    void getUserDetails() {
-        if (user != null) {
-            // read current user user details data from the database
-            DocumentReference docRef = db.collection("users").document(user.getUid());
-            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            currentUser = document.toObject(User.class);
-                            userName.setText(user.getEmail());
-                            playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
-                            nameField.setText(defaultName);
-                        } else {
-                            Log.d(TAG, "No such document");
-                        }
-                    } else {
-                        Log.d(TAG, "get failed with ", task.getException());
-                    }
-                }
-            });
-        }
-    }
-
     /**
      * checkForDouble function is called when the playlist's name already exists, and returns the
      * correct name
@@ -190,7 +168,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
      */
     String checkForDouble(String name, int num) {
         Log.w(TAG, "!@! entered checkForDouble");
-        if (currentUser.getPlaylistNumber() > 0 && currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
+        if (CurrentUser.currentUser.getPlaylistNumber() > 0 && CurrentUser.currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
             return checkForDouble(name, num + 1);
         Log.w(TAG, "!@! finale name " + name + String.valueOf(num));
         return name + String.valueOf(num);
@@ -223,7 +201,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
      */
     void addNewPlaylist(String name) {
         // change details locally
-        currentUser.addPlaylist(name);
+        CurrentUser.currentUser.addPlaylist(name);
 
         // update database user data
         DocumentReference userRef = db.collection("users").document(user.getUid());
@@ -244,7 +222,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                 });
 
         // increase playlists number
-        userRef.update("playlistNumber", currentUser.getPlaylistNumber())
+        userRef.update("playlistNumber", CurrentUser.currentUser.getPlaylistNumber())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -291,7 +269,8 @@ public class CreatePlaylistActivity extends AppCompatActivity {
 
                 if (snapshot != null && snapshot.exists()) {
                     Log.d(TAG, "!@!Current data: " + snapshot.getData());
-                    getUserDetails();
+                    userName.setText(user.getEmail());
+                    playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
                 } else {
                     Log.d(TAG, "!@!Current data: null");
                 }

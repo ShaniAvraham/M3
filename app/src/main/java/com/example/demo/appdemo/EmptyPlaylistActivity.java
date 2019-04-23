@@ -31,7 +31,6 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
-    private User currentUser;
     FirebaseUser user;
 
     // UI components
@@ -79,7 +78,9 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         View header = nvDrawer.getHeaderView(0);
         userName = header.findViewById(R.id.name);
         playlistNum = header.findViewById(R.id.playlist_num);
-        getUserDetails();
+
+        userName.setText(user.getEmail());
+        playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
 
         // when the search button start SearchActivity
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -145,29 +146,6 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         });
     }
 
-    void getUserDetails() {
-        if (user != null) {
-            // read current user user details data from the database
-            DocumentReference docRef = db.collection("users").document(user.getUid());
-            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            currentUser = document.toObject(User.class);
-                            userName.setText(user.getEmail());
-                            playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
-                        } else {
-                            Log.d(TAG, "No such document");
-                        }
-                    } else {
-                        Log.d(TAG, "get failed with ", task.getException());
-                    }
-                }
-            });
-        }
-    }
 
     /**
      * updateDetails function updates the screen and user info according to user details changes
@@ -185,7 +163,8 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
 
                 if (snapshot != null && snapshot.exists()) {
                     Log.d(TAG, "!@!Current data: " + snapshot.getData());
-                    getUserDetails();
+                    userName.setText(user.getEmail());
+                    playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
                 } else {
                     Log.d(TAG, "!@!Current data: null");
                 }

@@ -39,7 +39,6 @@ public class HomeActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
-    private User currentUser;
     FirebaseUser user;
 
     // UI components
@@ -185,9 +184,9 @@ public class HomeActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            currentUser = document.toObject(User.class);
+                            CurrentUser.setCurrentUser(document.toObject(User.class));
                             userName.setText(user.getEmail());
-                            playlistNum.setText((String.valueOf("Playlists: " + currentUser.getPlaylistNumber())));
+                            playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
                         } else {
                             Log.d(TAG, "No such document");
                         }
