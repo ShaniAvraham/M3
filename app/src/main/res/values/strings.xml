@@ -23,5 +23,6 @@
     <string name="next">NEXT</string>
     <string name="empty_playlist_msg">There are no songs in your playlist yet. Try searching for new songs!</string>
     <string name="cancel">Cancel</string>
+    <string name="continue_txt">continue</string>
 
 </resources>

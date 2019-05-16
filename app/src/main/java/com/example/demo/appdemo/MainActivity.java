@@ -49,9 +49,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String email = emailField.getText().toString();
                 String pass = passwordField.getText().toString();
-
-                //TODO: add validation function
-                //TODO: add regular expression for email address and password
                 if (!email.equals("") && !pass.equals("")) {
                     signIn(email, pass);
                 } else {
@@ -70,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    //TODO: check if user is already signed in (onStart())
 
 
     /**
@@ -96,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             // If sign in failed, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            toastMessage("Authentication failed.");
+                            toastMessage(task.getException().getMessage());
                         }
                     }
                 });
@@ -109,6 +104,6 @@ public class MainActivity extends AppCompatActivity {
      * @param message the message to show
      */
     private void toastMessage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 }

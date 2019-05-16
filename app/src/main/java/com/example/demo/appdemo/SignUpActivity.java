@@ -83,8 +83,7 @@ public class SignUpActivity extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            toastMessage("Authentication failed.");
-                            //TODO: add message about fail
+                            toastMessage(task.getException().getMessage());
                         }
                     }
                 });
@@ -96,7 +95,7 @@ public class SignUpActivity extends AppCompatActivity {
      * @param message the message to show
      */
     private void toastMessage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     /**
