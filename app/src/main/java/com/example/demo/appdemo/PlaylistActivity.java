@@ -380,6 +380,7 @@ public class PlaylistActivity extends AppCompatActivity {
             @Override
             protected void onPreExecute() {
                 mDialog.setMessage("please wait\n" + currentSong.getName());
+                mDialog.setCancelable(false);
                 mDialog.show();
                 currentSongTxt.setText(currentSong.getName());
                 currentArtistTxt.setText(currentSong.getArtist());
