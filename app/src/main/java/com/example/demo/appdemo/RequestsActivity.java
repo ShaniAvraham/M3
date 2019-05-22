@@ -1,31 +1,32 @@
 package com.example.demo.appdemo;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.SearchView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
+public class RequestsActivity extends AppCompatActivity {
 
-public class EmptyPlaylistActivity extends AppCompatActivity {
-
-    private static final String TAG = ".EmptyPlaylistActivity";
+    private static final String TAG = ".RequestsActivity";
 
     private FirebaseFirestore db;
 
@@ -36,30 +37,18 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mToggle;
     TextView userName, playlistNum;
 
-    String playlistName;
-
-    TextView playlistNameTxt;
-
-    Button searchButton;
+    String titleType;
+    TextView titleRequests;
+    ImageButton newRequestButton;
+    Query requests;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_empty_playlist);
+        setContentView(R.layout.activity_requests);
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
-
-        playlistNameTxt = findViewById(R.id.playlist_name);
-        searchButton = findViewById(R.id.search_button);
-
-        // set playlist name
-        Intent intent = getIntent();
-        Bundle bd = intent.getExtras();
-        if (bd != null) {
-            playlistName = (String) bd.get("name");
-            playlistNameTxt.setText(playlistName);
-        }
 
         // Drawer menu
         mDrawerLayout = findViewById(R.id.activity_main);
@@ -80,17 +69,45 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         userName.setText(user.getEmail());
         playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
 
-        // when the search button start SearchActivity
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
-                intent.putExtra("name", "Search");
-                startActivity(intent);
-            }
-        });
+        titleRequests = findViewById(R.id.titleRequest);
 
-        updateDetails();
+        // set playlist name
+        Intent intent = getIntent();
+        Bundle bd = intent.getExtras();
+        if (bd != null) {
+            titleType = (String) bd.get("title");
+        }
+
+        CollectionReference requestsRef = db.collection("requests");
+
+        // set UI according to the chosen option
+        // My requests
+        if (titleType.equals("my"))
+        {
+            titleType = "My Requests";
+            titleRequests.setText(titleType);
+            newRequestButton = findViewById(R.id.plus_btn);
+            newRequestButton.setVisibility(View.VISIBLE);
+
+            newRequestButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //TODO: switch to new request activity
+                }
+            });
+
+            requests = requestsRef.whereEqualTo("sender", CurrentUser.currentUser.getUsername());
+        }
+
+        // Community requests
+        else
+        {
+            titleType = "Community Requests";
+            titleRequests.setText(titleType);
+            requests = requestsRef.whereEqualTo("receiver", CurrentUser.currentUser.getUsername());
+        }
+
+        getRequests(requests);
     }
 
     @Override
@@ -109,30 +126,30 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
     public void selectIterDrawer(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.home:
-                startActivity(new Intent(EmptyPlaylistActivity.this, HomeActivity.class));
+                startActivity(new Intent(RequestsActivity.this, HomeActivity.class));
                 finish();
                 break;
 
             case R.id.search:
-                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
+                Intent intent = new Intent(RequestsActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
                 finish();
                 break;
 
             case R.id.my_playlists:
-                startActivity(new Intent(EmptyPlaylistActivity.this, MyPlaylistsActivity.class));
+                startActivity(new Intent(RequestsActivity.this, MyPlaylistsActivity.class));
                 finish();
                 break;
 
             case R.id.community:
-                startActivity(new Intent(EmptyPlaylistActivity.this, CommunityActivity.class));
+                startActivity(new Intent(RequestsActivity.this, CommunityActivity.class));
                 finish();
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(EmptyPlaylistActivity.this, MainActivity.class));
+                startActivity(new Intent(RequestsActivity.this, MainActivity.class));
                 finish();
                 break;
 
@@ -153,29 +170,7 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         });
     }
 
-
-    /**
-     * updateDetails function updates the screen and user info according to user details changes
-     */
-    void updateDetails() {
-        DocumentReference docRef = db.collection("users").document(user.getUid());
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot,
-                                @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e);
-                    return;
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    Log.d(TAG, "!@!Current data: " + snapshot.getData());
-                    userName.setText(user.getEmail());
-                    playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
-                } else {
-                    Log.d(TAG, "!@!Current data: null");
-                }
-            }
-        });
+    void getRequests(Query query)
+    {
     }
 }

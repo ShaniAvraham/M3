@@ -78,8 +78,9 @@ public class SignUpActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             if (user != null)
                                 addNewUser(user);
-                            Intent intent = new Intent(SignUpActivity.this, HomeActivity.class);
+                            Intent intent = new Intent(SignUpActivity.this, UsernameActivity.class);
                             startActivity(intent);
+                            finish();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -104,7 +105,7 @@ public class SignUpActivity extends AppCompatActivity {
      * @param newUser (FirebaseUser) the user to add
      */
     private void addNewUser(FirebaseUser newUser) {
-        User user = new User(0, null);
+        User user = new User(0, null, newUser.getEmail());
         Log.w(TAG, "!@!id " + newUser.getUid());
         db.collection("users").document(newUser.getUid()).set(user);
     }

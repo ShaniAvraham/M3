@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorGreen"
+    tools:context=".UsernameActivity">
+
+    <TextView
+        android:layout_margin="25dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="WELCOME TO M3!"
+        android:textColor="@color/colorWhite"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginBottom="25dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please choose a username\n\nYour user name will be your identifier in the M3 community\n(If you don't choose one, your username will be your email address)"
+        android:textColor="@color/colorWhite"
+        android:textSize="20sp"
+        android:gravity="center"/>
+
+    <EditText
+        android:id = "@+id/username"
+        android:layout_width = "250dp"
+        android:layout_height = "wrap_content"
+        android:hint="@string/username"
+        android:inputType="text"
+        android:layout_gravity="center_horizontal"
+        android:textColorHint="@color/colorWhite"
+        android:textColor="@color/colorWhite"
+        android:backgroundTint="@color/colorWhite"
+        />
+
+    <Button
+        android:id = "@+id/done_button"
+        android:layout_width = "wrap_content"
+        android:layout_height = "wrap_content"
+        android:text = "@string/done"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/shape"
+        android:textColor="@color/colorGreen"
+        />
+
+</LinearLayout>

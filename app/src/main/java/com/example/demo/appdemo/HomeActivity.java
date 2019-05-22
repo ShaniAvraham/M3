@@ -1,19 +1,18 @@
 package com.example.demo.appdemo;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -26,11 +25,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import android.os.Handler;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
@@ -50,7 +46,6 @@ public class HomeActivity extends AppCompatActivity {
     String[] playlistNameList;
     List<String> temp = new ArrayList<>();
 
-    // TODO: add photos to server (instead of using res)
     int[] playlistImages = {
             R.mipmap.chill_icon,
             R.mipmap.party_icon,
@@ -115,15 +110,23 @@ public class HomeActivity extends AppCompatActivity {
                 Intent intent = new Intent(HomeActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
+                finish();
                 break;
 
             case R.id.my_playlists:
                 startActivity(new Intent(HomeActivity.this, MyPlaylistsActivity.class));
+                finish();
+                break;
+
+            case R.id.community:
+                startActivity(new Intent(HomeActivity.this, CommunityActivity.class));
+                finish();
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
                 startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                finish();
                 break;
 
             default:

@@ -1,14 +1,12 @@
 package com.example.demo.appdemo;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -16,16 +14,11 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 
+public class CommunityActivity extends AppCompatActivity {
 
-public class EmptyPlaylistActivity extends AppCompatActivity {
-
-    private static final String TAG = ".EmptyPlaylistActivity";
+    private static final String TAG = ".CommunityActivity";
 
     private FirebaseFirestore db;
 
@@ -36,30 +29,18 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mToggle;
     TextView userName, playlistNum;
 
-    String playlistName;
-
-    TextView playlistNameTxt;
-
-    Button searchButton;
+    Button myRequestsButton, comRequestsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_empty_playlist);
+        setContentView(R.layout.activity_community);
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        playlistNameTxt = findViewById(R.id.playlist_name);
-        searchButton = findViewById(R.id.search_button);
-
-        // set playlist name
-        Intent intent = getIntent();
-        Bundle bd = intent.getExtras();
-        if (bd != null) {
-            playlistName = (String) bd.get("name");
-            playlistNameTxt.setText(playlistName);
-        }
+        myRequestsButton = findViewById(R.id.myrequests_btn);
+        comRequestsButton = findViewById(R.id.communityrequests_btn);
 
         // Drawer menu
         mDrawerLayout = findViewById(R.id.activity_main);
@@ -80,17 +61,23 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         userName.setText(user.getEmail());
         playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
 
-        // when the search button start SearchActivity
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        myRequestsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
-                intent.putExtra("name", "Search");
+                Intent intent = new Intent(CommunityActivity.this, RequestsActivity.class);
+                intent.putExtra("title", "my");
                 startActivity(intent);
             }
         });
 
-        updateDetails();
+        comRequestsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(CommunityActivity.this, RequestsActivity.class);
+                intent.putExtra("title", "com");
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -109,30 +96,28 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
     public void selectIterDrawer(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.home:
-                startActivity(new Intent(EmptyPlaylistActivity.this, HomeActivity.class));
+                startActivity(new Intent(CommunityActivity.this, HomeActivity.class));
                 finish();
                 break;
 
             case R.id.search:
-                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
+                Intent intent = new Intent(CommunityActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
                 finish();
                 break;
 
             case R.id.my_playlists:
-                startActivity(new Intent(EmptyPlaylistActivity.this, MyPlaylistsActivity.class));
+                startActivity(new Intent(CommunityActivity.this, MyPlaylistsActivity.class));
                 finish();
                 break;
 
             case R.id.community:
-                startActivity(new Intent(EmptyPlaylistActivity.this, CommunityActivity.class));
-                finish();
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(EmptyPlaylistActivity.this, MainActivity.class));
+                startActivity(new Intent(CommunityActivity.this, MainActivity.class));
                 finish();
                 break;
 
@@ -149,32 +134,6 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 selectIterDrawer(menuItem);
                 return true;
-            }
-        });
-    }
-
-
-    /**
-     * updateDetails function updates the screen and user info according to user details changes
-     */
-    void updateDetails() {
-        DocumentReference docRef = db.collection("users").document(user.getUid());
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot,
-                                @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e);
-                    return;
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    Log.d(TAG, "!@!Current data: " + snapshot.getData());
-                    userName.setText(user.getEmail());
-                    playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
-                } else {
-                    Log.d(TAG, "!@!Current data: null");
-                }
             }
         });
     }

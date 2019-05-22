@@ -9,13 +9,15 @@ public class User {
 
     private int playlistNumber;
     private List<String> playlistNames;
+    private String username;
 
     public User() {
     }
 
-    public User(int playlistNum, List<String> playArr) {
+    public User(int playlistNum, List<String> playArr, String name) {
         playlistNumber = playlistNum;
         playlistNames = playArr;
+        username = name;
     }
 
     public int getPlaylistNumber() {
@@ -32,6 +34,14 @@ public class User {
 
     public void setPlaylistNames(List<String> playlists) {
         this.playlistNames = playlists;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     /**
