@@ -14,8 +14,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -52,6 +50,7 @@ public class RequestsActivity extends AppCompatActivity {
 
     Query requestsQuery;
     List<Request> requests;
+    List<String> requestsId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +59,9 @@ public class RequestsActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
+
         requests = new ArrayList<>();
+        requestsId = new ArrayList<>();
 
         listview = findViewById(R.id.listview);
 
@@ -119,6 +120,7 @@ public class RequestsActivity extends AppCompatActivity {
             requestsQuery = requestsRef.whereEqualTo("receiver", CurrentUser.currentUser.getUsername());
         }
 
+        // read requests from the server an presents them according to the query
         requestsQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
@@ -128,8 +130,23 @@ public class RequestsActivity extends AppCompatActivity {
                 }
 
                 requests.clear();
+                requestsId.clear();
+                Request result;
                 for (QueryDocumentSnapshot doc : Objects.requireNonNull(queryDocumentSnapshots)) {
-                        requests.add(doc.toObject(Request.class));
+                    result = doc.toObject(Request.class);
+
+                    // if this user received the message and already answered it, don't present it
+                    if (titleType.equals("Community Requests")) {
+                        if (result.getResponsePlaylist().equals("")) {
+                            requests.add(result);
+                            requestsId.add(doc.getId());
+                        }
+                    }
+
+                    else {
+                        requests.add(result);
+                        requestsId.add(doc.getId());
+                    }
                 }
                 presentRequests(requests);
             }
@@ -197,37 +214,6 @@ public class RequestsActivity extends AppCompatActivity {
     }
 
     /**
-     * getRequests reads requests from the server an presents them according to the query
-     *
-     * @param theQuery the query
-     */
-    void getRequests(Query theQuery) {
-        Log.w(TAG, "@@@@getRequests()");
-        try {
-            theQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    Request resultRequest;
-
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                            resultRequest = document.toObject(Request.class);
-                            requests.add(resultRequest);
-                            Log.w(TAG, "@@@@" + resultRequest);
-                        }
-                        presentRequests(requests);
-                    }
-                }
-            });
-        } catch (Exception e)
-        {
-            Log.w(TAG, "@@@@"+ e.getMessage());
-        }
-
-
-    }
-
-    /**
      * presentRequests receives a request list and presents it
      *
      * @param requestsList the requests list
@@ -258,5 +244,12 @@ public class RequestsActivity extends AppCompatActivity {
         }
 
         listview.setAdapter(new RequestsAdapter(RequestsActivity.this, usernames, texts));
+    }
+
+    void openRequest(int index) {
+        Intent intent = new Intent(RequestsActivity.this, RequestDetailsActivity.class);
+        intent.putExtra("type", titleType);
+        intent.putExtra("id", requestsId.get(index));
+        startActivity(intent);
     }
 }

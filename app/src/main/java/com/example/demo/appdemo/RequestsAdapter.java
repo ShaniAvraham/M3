@@ -65,7 +65,8 @@ public class RequestsAdapter extends BaseAdapter {
 
             @Override
             public void onClick(View v) {
-                // TODO: present the request (My request/ community request)
+                // play the selected song
+                ((RequestsActivity) context).openRequest(position);
             }
         });
 

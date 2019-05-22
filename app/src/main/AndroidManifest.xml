@@ -25,7 +25,8 @@
         <activity android:name=".SignDetailsActivity" />
         <activity android:name=".UsernameActivity" />
         <activity android:name=".CommunityActivity" />
-        <activity android:name=".RequestsActivity"></activity>
+        <activity android:name=".RequestsActivity" />
+        <activity android:name=".RequestDetailsActivity"></activity>
     </application>
 
 </manifest>

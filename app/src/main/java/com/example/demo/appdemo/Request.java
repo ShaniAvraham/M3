@@ -44,6 +44,14 @@ public class Request {
         this.text = text;
     }
 
+    public String getResponsePlaylist() {
+        return responsePlaylist;
+    }
+
+    public void setResponsePlaylist(String responsePlaylist) {
+        this.responsePlaylist = responsePlaylist;
+    }
+
     @NonNull
     @Override
     public String toString() {
