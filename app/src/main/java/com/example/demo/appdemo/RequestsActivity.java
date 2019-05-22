@@ -1,17 +1,17 @@
 package com.example.demo.appdemo;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.SearchView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -19,10 +19,18 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import javax.annotation.Nullable;
 
 public class RequestsActivity extends AppCompatActivity {
 
@@ -40,7 +48,10 @@ public class RequestsActivity extends AppCompatActivity {
     String titleType;
     TextView titleRequests;
     ImageButton newRequestButton;
-    Query requests;
+    ListView listview;
+
+    Query requestsQuery;
+    List<Request> requests;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +60,9 @@ public class RequestsActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
+        requests = new ArrayList<>();
+
+        listview = findViewById(R.id.listview);
 
         // Drawer menu
         mDrawerLayout = findViewById(R.id.activity_main);
@@ -82,8 +96,7 @@ public class RequestsActivity extends AppCompatActivity {
 
         // set UI according to the chosen option
         // My requests
-        if (titleType.equals("my"))
-        {
+        if (titleType.equals("my")) {
             titleType = "My Requests";
             titleRequests.setText(titleType);
             newRequestButton = findViewById(R.id.plus_btn);
@@ -95,19 +108,32 @@ public class RequestsActivity extends AppCompatActivity {
                     //TODO: switch to new request activity
                 }
             });
-
-            requests = requestsRef.whereEqualTo("sender", CurrentUser.currentUser.getUsername());
+            Log.w(TAG, "@@@@"+CurrentUser.currentUser.getUsername());
+            requestsQuery = requestsRef.whereEqualTo("sender", CurrentUser.currentUser.getUsername());
         }
 
         // Community requests
-        else
-        {
+        else {
             titleType = "Community Requests";
             titleRequests.setText(titleType);
-            requests = requestsRef.whereEqualTo("receiver", CurrentUser.currentUser.getUsername());
+            requestsQuery = requestsRef.whereEqualTo("receiver", CurrentUser.currentUser.getUsername());
         }
 
-        getRequests(requests);
+        requestsQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                requests.clear();
+                for (QueryDocumentSnapshot doc : Objects.requireNonNull(queryDocumentSnapshots)) {
+                        requests.add(doc.toObject(Request.class));
+                }
+                presentRequests(requests);
+            }
+        });
     }
 
     @Override
@@ -170,7 +196,67 @@ public class RequestsActivity extends AppCompatActivity {
         });
     }
 
-    void getRequests(Query query)
-    {
+    /**
+     * getRequests reads requests from the server an presents them according to the query
+     *
+     * @param theQuery the query
+     */
+    void getRequests(Query theQuery) {
+        Log.w(TAG, "@@@@getRequests()");
+        try {
+            theQuery.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    Request resultRequest;
+
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                            resultRequest = document.toObject(Request.class);
+                            requests.add(resultRequest);
+                            Log.w(TAG, "@@@@" + resultRequest);
+                        }
+                        presentRequests(requests);
+                    }
+                }
+            });
+        } catch (Exception e)
+        {
+            Log.w(TAG, "@@@@"+ e.getMessage());
+        }
+
+
+    }
+
+    /**
+     * presentRequests receives a request list and presents it
+     *
+     * @param requestsList the requests list
+     */
+    void presentRequests(List<Request> requestsList) {
+        String[] usernames, texts;
+
+        // No requests
+        if (requests.isEmpty()) {
+            usernames = new String[1];
+            texts = new String[1];
+            usernames[0] = "No Requests";
+            texts[0] = "";
+        }
+
+        else
+        {
+            usernames = new String[requestsList.size()];
+            texts = new String[requestsList.size()];
+            for (int i = 0; i < requestsList.size(); i++) {
+                if (titleType.equals("My Requests")) {
+                    usernames[i] = requestsList.get(i).getReceiver();
+                } else {
+                    usernames[i] = requestsList.get(i).getSender();
+                }
+                texts[i] = requestsList.get(i).getText();
+            }
+        }
+
+        listview.setAdapter(new RequestsAdapter(RequestsActivity.this, usernames, texts));
     }
 }

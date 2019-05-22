@@ -99,6 +99,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                 Intent intent = new Intent(CreatePlaylistActivity.this, EmptyPlaylistActivity.class);
                 intent.putExtra("name", playlistName);
                 startActivity(intent);
+                finish();
 
             }
         });

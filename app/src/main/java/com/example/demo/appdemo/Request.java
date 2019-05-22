@@ -9,6 +9,9 @@ public class Request {
     private String text;
     private String responsePlaylist;
 
+    public Request()
+    {}
+
     public Request(String sender, String receiver, String text)
     {
         this.sender = sender;
