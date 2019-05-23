@@ -1,5 +1,7 @@
 package com.example.demo.appdemo;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -41,6 +43,7 @@ public class RequestDetailsActivity extends AppCompatActivity {
     String requestType;
     String requestId;
     Request request;
+    DocumentReference requestRef;
 
     LinearLayout details, response;
     TextView notAvailableTxt, userFieldTxt, textFieldTxt, noResponseTxt, playlistNameTxt;
@@ -98,7 +101,7 @@ public class RequestDetailsActivity extends AppCompatActivity {
             requestId = (String) bd.get("id");
         }
 
-        DocumentReference requestRef = db.collection("requests").document(requestId);
+        requestRef = db.collection("requests").document(requestId);
         requestRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
@@ -230,7 +233,8 @@ public class RequestDetailsActivity extends AppCompatActivity {
                 choosePlaylistButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // TODO: add send playlist dialog
+                        // pop the playlist options dialog
+                        popPlaylistsdDialog();
                     }
                 });
             }
@@ -261,5 +265,38 @@ public class RequestDetailsActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    /**
+     * popPlaylistsdDialog function pops an option dialog, which presents the user's playlists
+     * the user chooses which playlist he wants to send to the request author
+     */
+    void popPlaylistsdDialog() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if(CurrentUser.currentUser.getPlaylistNumber()==0){
+            builder.setTitle("There are no personal playlists");
+        }
+
+        else{
+            final String[] options = CurrentUser.currentUser.getPlaylistNames().toArray(new String[0]);
+            builder.setTitle("Send playlist:");
+            builder.setItems(options, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // the user clicked on options[which]
+                    requestRef.update("responsePlaylist", options[which]);
+                    finish();
+                }
+            });
+        }
+        // dismiss dialog if cancel was pressed
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //the user clicked on Cancel
+                dialog.dismiss();
+            }
+        });
+        builder.show();
     }
 }
