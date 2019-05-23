@@ -127,6 +127,7 @@ public class RequestDetailsActivity extends AppCompatActivity {
                 if (documentSnapshot != null && documentSnapshot.exists()) {
                     Log.d(TAG, "Current data: " + documentSnapshot.getData());
                     request = documentSnapshot.toObject(Request.class);
+                    getUserId(request.getReceiver());
                     presentRequest();
                 } else {
                     Log.d(TAG, "Current data: null");
@@ -269,7 +270,11 @@ public class RequestDetailsActivity extends AppCompatActivity {
             playlistButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO: switch to PlaylistActivity
+                    Intent intent = new Intent(RequestDetailsActivity.this, PlaylistActivity.class);
+                    intent.putExtra("name", request.getResponsePlaylist());
+                    intent.putExtra("type", "request");
+                    intent.putExtra("recId", recieverId);
+                    startActivity(intent);
                 }
             });
 

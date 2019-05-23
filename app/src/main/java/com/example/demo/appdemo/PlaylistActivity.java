@@ -151,16 +151,23 @@ public class PlaylistActivity extends AppCompatActivity {
             if (playlistType.equals("static"))
                 playlistRef = db.collection("static playlists").document(playlistName);
             else {
-                playlistRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
-                // make playlist option button visible
-                playlistOptionsButton = findViewById(R.id.option_btn);
-                playlistOptionsButton.setVisibility(View.VISIBLE);
-                playlistOptionsButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        popOptionDialog();
-                    }
-                });
+                if (playlistType.equals("request"))
+                {
+                    String recId = (String) bd.get("recId");
+                    playlistRef = db.collection("users").document(recId).collection("Playlists").document(playlistName);
+                }
+                else{
+                    playlistRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
+                    // make playlist option button visible
+                    playlistOptionsButton = findViewById(R.id.option_btn);
+                    playlistOptionsButton.setVisibility(View.VISIBLE);
+                    playlistOptionsButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            popOptionDialog();
+                        }
+                    });
+                }
             }
 
             // display the selected playlist songs
@@ -506,7 +513,7 @@ public class PlaylistActivity extends AppCompatActivity {
      * @param songName the song's name
      */
     void popTypeDialog(final String songName) {
-        if (playlistType.equals("static"))
+        if (playlistType.equals("static") || playlistType.equals("request"))
             popAddDialog(songName);
         else
         {
