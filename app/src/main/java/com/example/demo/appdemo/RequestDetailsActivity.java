@@ -330,6 +330,7 @@ public class RequestDetailsActivity extends AppCompatActivity {
             Log.w(TAG, "!@! after empty");
 
             getUserId(request.getReceiver());
+            getResPlaylist();
         }
     }
 
@@ -351,7 +352,6 @@ public class RequestDetailsActivity extends AppCompatActivity {
                         for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
                             recieverId = document.getId();
                         }
-                        getResponsePlaylist();
                     }
                 }
             });
@@ -359,9 +359,9 @@ public class RequestDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * getResponsePlaylist reads the response playlist fromthe database, then copies the playlist
+     * getResPlaylist reads the response playlist from the database, then copies the playlist
      */
-    void getResponsePlaylist()
+    void getResPlaylist()
     {
         DocumentReference docRef = db.collection("users").document(recieverId).collection("Playlists").document(request.getResponsePlaylist());
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {

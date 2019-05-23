@@ -14,9 +14,13 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -150,6 +154,8 @@ public class RequestsActivity extends AppCompatActivity {
                 presentRequests(requests);
             }
         });
+
+        updateDetails();
     }
 
     @Override
@@ -252,5 +258,53 @@ public class RequestsActivity extends AppCompatActivity {
         intent.putExtra("type", titleType);
         intent.putExtra("id", requestsId.get(index));
         startActivity(intent);
+    }
+
+    /**
+     * updateDetails function updates the screen and user info according to user details changes
+     */
+    void updateDetails() {
+        DocumentReference docRef = db.collection("users").document(user.getUid());
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@android.support.annotation.Nullable DocumentSnapshot snapshot,
+                                @android.support.annotation.Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "!@!Current data: " + snapshot.getData());
+                    getUserDetails();
+                } else {
+                    Log.d(TAG, "!@!Current data: null");
+                }
+            }
+        });
+    }
+
+    void getUserDetails() {
+        if (user != null) {
+            // read current user user details data from the database
+            DocumentReference docRef = db.collection("users").document(user.getUid());
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            CurrentUser.setCurrentUser(document.toObject(User.class));
+                            userName.setText(user.getEmail());
+                            playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
+                        } else {
+                            Log.d(TAG, "No such document");
+                        }
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
     }
 }
