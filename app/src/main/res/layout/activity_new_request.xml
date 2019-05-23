@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NewRequestActivity">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="New Request"
+            android:textSize="30sp"
+            android:textColor="@color/colorGreen"
+            android:textStyle="bold"
+            android:padding="25dp"
+            android:textAllCaps="true"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="Choose a user to send a request to!"
+            android:textColor="@color/colorGray"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            />
+
+        <SearchView
+            android:id="@+id/search_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:iconifiedByDefault="false"
+            android:background="@drawable/searchbar"
+            android:layout_margin="25dp"
+            android:queryHint="@string/search_hint"/>
+
+        <ListView
+            android:id="@+id/list_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <android.support.design.widget.NavigationView
+        app:headerLayout="@layout/menu_header"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@color/colorWhite"
+        app:menu="@menu/drawermenu"
+        android:layout_gravity="start"
+        android:id="@+id/nv"
+        app:itemTextColor="@color/colorGray">
+    </android.support.design.widget.NavigationView>
+
+</android.support.v4.widget.DrawerLayout>

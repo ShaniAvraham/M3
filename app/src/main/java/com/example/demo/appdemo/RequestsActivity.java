@@ -106,10 +106,11 @@ public class RequestsActivity extends AppCompatActivity {
             newRequestButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO: switch to new request activity
+                    Intent intent = new Intent(RequestsActivity.this, NewRequestActivity.class);
+                    startActivity(intent);
                 }
             });
-            Log.w(TAG, "@@@@"+CurrentUser.currentUser.getUsername());
+
             requestsQuery = requestsRef.whereEqualTo("sender", CurrentUser.currentUser.getUsername());
         }
 
@@ -141,9 +142,7 @@ public class RequestsActivity extends AppCompatActivity {
                             requests.add(result);
                             requestsId.add(doc.getId());
                         }
-                    }
-
-                    else {
+                    } else {
                         requests.add(result);
                         requestsId.add(doc.getId());
                     }
@@ -227,10 +226,7 @@ public class RequestsActivity extends AppCompatActivity {
             texts = new String[1];
             usernames[0] = "No Requests";
             texts[0] = "";
-        }
-
-        else
-        {
+        } else {
             usernames = new String[requestsList.size()];
             texts = new String[requestsList.size()];
             for (int i = 0; i < requestsList.size(); i++) {
@@ -246,6 +242,11 @@ public class RequestsActivity extends AppCompatActivity {
         listview.setAdapter(new RequestsAdapter(RequestsActivity.this, usernames, texts));
     }
 
+    /**
+     * openRequest presents the chosen request (switch to RequestDetaisActivity)
+     *
+     * @param index the number of the chosen request
+     */
     void openRequest(int index) {
         Intent intent = new Intent(RequestsActivity.this, RequestDetailsActivity.class);
         intent.putExtra("type", titleType);
