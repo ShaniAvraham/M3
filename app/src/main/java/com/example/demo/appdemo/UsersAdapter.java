@@ -59,7 +59,7 @@ public class UsersAdapter extends BaseAdapter {
 
             holder.username_txt.setText(users[position]);
 
-            if (!users[0].equals("No Users"))
+            if (!users[0].equals("No Users") && !users[0].equals("You can't send a request to yourself"))
                 rowView.setOnClickListener(new View.OnClickListener() {
 
                     @Override

@@ -158,42 +158,56 @@ public class NewRequestActivity extends AppCompatActivity {
         users.clear();
         CollectionReference usersRef = db.collection("users");
 
-        Query queryUsers = usersRef.whereEqualTo("username", searchKey);
-        queryUsers.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                User resultUser;
+        // prevent the user from sending a request to himself
+        if (!searchKey.equals(CurrentUser.currentUser.getUsername())) {
+            Query queryUsers = usersRef.whereEqualTo("username", searchKey);
+            queryUsers.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    User resultUser;
 
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                        resultUser = document.toObject(User.class);
-                        users.add(resultUser);
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                            resultUser = document.toObject(User.class);
+                            users.add(resultUser);
+                        }
+                        presentUsers(false);
                     }
-                    presentUsers();
                 }
-            }
-        });
+            });
+        }
+
+        else
+        {
+            presentUsers(true);
+        }
     }
 
     /**
      * presentUsers presents a list of the found users
      */
-    void presentUsers()
+    void presentUsers(boolean self)
     {
         String[] usernames;
 
-        // No requests
-        if (users.isEmpty()) {
-            usernames = new String[1];
-            usernames[0] = "No Users";
-        }
-
-        else
+        if (self)
         {
-            usernames = new String[users.size()];
-            for (int i = 0; i < users.size(); i++) {
-                usernames[i] = users.get(i).getUsername();
-                Log.w(TAG, "@@@@" + usernames[i]);
+            usernames = new String[1];
+            usernames[0] = "You can't send a request to yourself";
+        }
+        else {
+
+            // No requests
+            if (users.isEmpty()) {
+                usernames = new String[1];
+                usernames[0] = "No Users";
+            }
+            else {
+                usernames = new String[users.size()];
+                for (int i = 0; i < users.size(); i++) {
+                    usernames[i] = users.get(i).getUsername();
+                    Log.w(TAG, "@@@@" + usernames[i]);
+                }
             }
         }
 

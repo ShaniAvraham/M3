@@ -17,13 +17,25 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.HashMap;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -44,6 +56,8 @@ public class RequestDetailsActivity extends AppCompatActivity {
     String requestId;
     Request request;
     DocumentReference requestRef;
+
+    String recieverId;
 
     LinearLayout details, response;
     TextView notAvailableTxt, userFieldTxt, textFieldTxt, noResponseTxt, playlistNameTxt;
@@ -123,6 +137,7 @@ public class RequestDetailsActivity extends AppCompatActivity {
             }
         });
 
+        updateDetails();
     }
 
     @Override
@@ -261,7 +276,8 @@ public class RequestDetailsActivity extends AppCompatActivity {
             saveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO: save playlist to my playlists
+                    Log.w(TAG, "!@! onClick of save");
+                    savePlaylist();
                 }
             });
         }
@@ -298,5 +314,198 @@ public class RequestDetailsActivity extends AppCompatActivity {
             }
         });
         builder.show();
+    }
+
+    void savePlaylist()
+    {
+        Log.w(TAG, "!@! inside savePlaylist()");
+        // check if there is a response
+        if(!request.getResponsePlaylist().equals(""))
+        {
+            Log.w(TAG, "!@! after empty");
+
+            getUserId(request.getReceiver());
+        }
+    }
+
+    /**
+     * getUserId receives a username and finds it's document id
+     *
+     * @param username the username
+     */
+    void getUserId(String username)
+    {
+        CollectionReference usersRef = db.collection("users");
+
+            Query queryUsers = usersRef.whereEqualTo("username", username);
+            queryUsers.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                            recieverId = document.getId();
+                        }
+                        getResponsePlaylist();
+                    }
+                }
+            });
+
+    }
+
+    /**
+     * getResponsePlaylist reads the response playlist fromthe database, then copies the playlist
+     */
+    void getResponsePlaylist()
+    {
+        DocumentReference docRef = db.collection("users").document(recieverId).collection("Playlists").document(request.getResponsePlaylist());
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (Objects.requireNonNull(document).exists()) {
+                        // get the playlist to save
+                        Playlist playlistToSave = document.toObject(Playlist.class);
+
+                        // check if the playlist's name already exists
+                        if (CurrentUser.currentUser.getPlaylistNumber() > 0 && CurrentUser.currentUser.getPlaylistNames().contains(playlistToSave.getName()))
+                            playlistToSave.setName(checkForDouble(playlistToSave.getName(), 1));
+
+                        // copy the playlist
+                        copyPlaylist(playlistToSave);
+
+                        Log.d(TAG, "DocumentSnapshot data: " + document.getData());
+                    } else {
+                        Log.d(TAG, "No such playlist");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+    }
+
+    /**
+     * checkForDouble function is called when the playlist's name already exists, and returns the
+     * correct name
+     *
+     * @param name (String) the original name
+     * @param num  (String) the number to begin with
+     * @return (String) the correct playlist's name
+     */
+    String checkForDouble(String name, int num) {
+        Log.w(TAG, "!@! entered checkForDouble");
+        if (CurrentUser.currentUser.getPlaylistNumber() > 0 && CurrentUser.currentUser.getPlaylistNames().contains(name + String.valueOf(num)))
+            return checkForDouble(name, num + 1);
+        Log.w(TAG, "!@! finale name " + name + String.valueOf(num));
+        return name + String.valueOf(num);
+    }
+
+    /**
+     * copyPlaylist receives a playlist and copies it to the user's personal playlists
+     *
+     * @param playlist the playlist to copy
+     */
+    void copyPlaylist(Playlist playlist)
+    {
+        // change details locally
+        CurrentUser.currentUser.addPlaylist(playlist.getName());
+
+        // update database user data
+        DocumentReference userRef = db.collection("users").document(user.getUid());
+
+        // add playlist name
+        userRef.update("playlistNames", FieldValue.arrayUnion(playlist.getName()))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // increase playlists number
+        userRef.update("playlistNumber", CurrentUser.currentUser.getPlaylistNumber())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! DocumentSnapshot successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error updating document", e);
+                    }
+                });
+
+        // create a new collection for the new playlist or update existing one
+        userRef.collection("Playlists").document(playlist.getName()).set(playlist)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "!@! Document successfully created!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "!@! Error creating document", e);
+                    }
+                });
+    }
+
+    /**
+     * updateDetails function updates the screen and user info according to user details changes
+     */
+    void updateDetails() {
+        DocumentReference docRef = db.collection("users").document(user.getUid());
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@android.support.annotation.Nullable DocumentSnapshot snapshot,
+                                @android.support.annotation.Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "!@!Current data: " + snapshot.getData());
+                    getUserDetails();
+                } else {
+                    Log.d(TAG, "!@!Current data: null");
+                }
+            }
+        });
+    }
+
+    void getUserDetails() {
+        if (user != null) {
+            // read current user user details data from the database
+            DocumentReference docRef = db.collection("users").document(user.getUid());
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            CurrentUser.setCurrentUser(document.toObject(User.class));
+                            userName.setText(user.getEmail());
+                            playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
+                        } else {
+                            Log.d(TAG, "No such document");
+                        }
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
     }
 }
