@@ -99,6 +99,7 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                 Intent intent = new Intent(CreatePlaylistActivity.this, EmptyPlaylistActivity.class);
                 intent.putExtra("name", playlistName);
                 startActivity(intent);
+                finish();
 
             }
         });
@@ -124,21 +125,30 @@ public class CreatePlaylistActivity extends AppCompatActivity {
         switch (menuItem.getItemId()) {
             case R.id.home:
                 startActivity(new Intent(CreatePlaylistActivity.this, HomeActivity.class));
+                finish();
                 break;
 
             case R.id.search:
                 Intent intent = new Intent(CreatePlaylistActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
+                finish();
                 break;
 
             case R.id.my_playlists:
                 startActivity(new Intent(CreatePlaylistActivity.this, MyPlaylistsActivity.class));
+                finish();
+                break;
+
+            case R.id.community:
+                startActivity(new Intent(CreatePlaylistActivity.this, CommunityActivity.class));
+                finish();
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
                 startActivity(new Intent(CreatePlaylistActivity.this, MainActivity.class));
+                finish();
                 break;
 
             default:

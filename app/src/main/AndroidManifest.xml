@@ -22,7 +22,13 @@
         <activity android:name=".MyPlaylistsActivity" />
         <activity android:name=".CreatePlaylistActivity" />
         <activity android:name=".EmptyPlaylistActivity" />
-        <activity android:name=".SignDetailsActivity"></activity>
+        <activity android:name=".SignDetailsActivity" />
+        <activity android:name=".UsernameActivity" />
+        <activity android:name=".CommunityActivity" />
+        <activity android:name=".RequestsActivity" />
+        <activity android:name=".RequestDetailsActivity" />
+        <activity android:name=".NewRequestActivity" />
+        <activity android:name=".CreateRequestActivity"></activity>
     </application>
 
 </manifest>

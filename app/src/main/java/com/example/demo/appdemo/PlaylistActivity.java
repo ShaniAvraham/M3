@@ -151,16 +151,23 @@ public class PlaylistActivity extends AppCompatActivity {
             if (playlistType.equals("static"))
                 playlistRef = db.collection("static playlists").document(playlistName);
             else {
-                playlistRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
-                // make playlist option button visible
-                playlistOptionsButton = findViewById(R.id.option_btn);
-                playlistOptionsButton.setVisibility(View.VISIBLE);
-                playlistOptionsButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        popOptionDialog();
-                    }
-                });
+                if (playlistType.equals("request"))
+                {
+                    String recId = (String) bd.get("recId");
+                    playlistRef = db.collection("users").document(recId).collection("Playlists").document(playlistName);
+                }
+                else{
+                    playlistRef = db.document("users/" + user.getUid() + "/Playlists/" + playlistName);
+                    // make playlist option button visible
+                    playlistOptionsButton = findViewById(R.id.option_btn);
+                    playlistOptionsButton.setVisibility(View.VISIBLE);
+                    playlistOptionsButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            popOptionDialog();
+                        }
+                    });
+                }
             }
 
             // display the selected playlist songs
@@ -506,7 +513,7 @@ public class PlaylistActivity extends AppCompatActivity {
      * @param songName the song's name
      */
     void popTypeDialog(final String songName) {
-        if (playlistType.equals("static"))
+        if (playlistType.equals("static") || playlistType.equals("request"))
             popAddDialog(songName);
         else
         {
@@ -548,24 +555,29 @@ public class PlaylistActivity extends AppCompatActivity {
      * @param songName (String) the chosen song's name
      */
     void popAddDialog(final String songName) {
-        final String[] options = CurrentUser.currentUser.getPlaylistNames().toArray(new String[0]);
-
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add to playlist:");
-        builder.setItems(options, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // the user clicked on options[which]
+        if(CurrentUser.currentUser.getPlaylistNumber()==0){
+            builder.setTitle("There are no personal playlists");
+        }
 
-                // song added from search
-                if (playlistName.equals("Search"))
-                    addResultToPlaylist(songName, options[which]);
+            else{
+            final String[] options = CurrentUser.currentUser.getPlaylistNames().toArray(new String[0]);
+            builder.setTitle("Add to playlist:");
+            builder.setItems(options, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // the user clicked on options[which]
 
-                    // song added from static playlist
-                else
-                    addSongToPlaylist(songName, options[which]);
-            }
-        });
+                    // song added from search
+                    if (playlistName.equals("Search"))
+                        addResultToPlaylist(songName, options[which]);
+
+                        // song added from static playlist
+                    else
+                        addSongToPlaylist(songName, options[which]);
+                }
+            });
+        }
         // dismiss dialog if cancel was pressed
         builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override

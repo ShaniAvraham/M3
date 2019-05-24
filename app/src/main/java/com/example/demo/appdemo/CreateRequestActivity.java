@@ -1,31 +1,38 @@
 package com.example.demo.appdemo;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import java.util.ArrayList;
+import java.util.Collections;
 
-public class EmptyPlaylistActivity extends AppCompatActivity {
+public class CreateRequestActivity extends AppCompatActivity {
 
-    private static final String TAG = ".EmptyPlaylistActivity";
+    private static final String TAG = ".NewRequestActivity";
 
     private FirebaseFirestore db;
 
@@ -36,30 +43,22 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mToggle;
     TextView userName, playlistNum;
 
-    String playlistName;
-
-    TextView playlistNameTxt;
-
-    Button searchButton;
+    String receiver;
+    TextView receiverText;
+    EditText contentEdit;
+    Button sendButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_empty_playlist);
+        setContentView(R.layout.activity_create_request);
 
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        playlistNameTxt = findViewById(R.id.playlist_name);
-        searchButton = findViewById(R.id.search_button);
-
-        // set playlist name
-        Intent intent = getIntent();
-        Bundle bd = intent.getExtras();
-        if (bd != null) {
-            playlistName = (String) bd.get("name");
-            playlistNameTxt.setText(playlistName);
-        }
+        receiverText = findViewById(R.id.receiver);
+        contentEdit = findViewById(R.id.editText);
+        sendButton = findViewById(R.id.send_button);
 
         // Drawer menu
         mDrawerLayout = findViewById(R.id.activity_main);
@@ -80,17 +79,23 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         userName.setText(user.getEmail());
         playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
 
-        // when the search button start SearchActivity
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        // get request information
+        Intent intent = getIntent();
+        Bundle bd = intent.getExtras();
+        if (bd != null) {
+            receiver = (String) bd.get("username");
+        }
+
+        String recText = "To: " + receiver;
+        receiverText.setText(recText);
+
+        sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
-                intent.putExtra("name", "Search");
-                startActivity(intent);
-                finish();
+                String content = contentEdit.getText().toString();
+                sendRequest(content);
             }
         });
-
         updateDetails();
     }
 
@@ -110,30 +115,30 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
     public void selectIterDrawer(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.home:
-                startActivity(new Intent(EmptyPlaylistActivity.this, HomeActivity.class));
+                startActivity(new Intent(CreateRequestActivity.this, HomeActivity.class));
                 finish();
                 break;
 
             case R.id.search:
-                Intent intent = new Intent(EmptyPlaylistActivity.this, PlaylistActivity.class);
+                Intent intent = new Intent(CreateRequestActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
                 finish();
                 break;
 
             case R.id.my_playlists:
-                startActivity(new Intent(EmptyPlaylistActivity.this, MyPlaylistsActivity.class));
+                startActivity(new Intent(CreateRequestActivity.this, MyPlaylistsActivity.class));
                 finish();
                 break;
 
             case R.id.community:
-                startActivity(new Intent(EmptyPlaylistActivity.this, CommunityActivity.class));
+                startActivity(new Intent(CreateRequestActivity.this, CommunityActivity.class));
                 finish();
                 break;
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(EmptyPlaylistActivity.this, MainActivity.class));
+                startActivity(new Intent(CreateRequestActivity.this, MainActivity.class));
                 finish();
                 break;
 
@@ -154,6 +159,31 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * sendRequest uploads the users request to the database
+     *
+     * @param content the request's content
+     */
+    void sendRequest(String content)
+    {
+        Request newRequest = new Request(CurrentUser.currentUser.getUsername(), receiver, content);
+
+        CollectionReference reqRef= db.collection("requests");
+        reqRef.add(newRequest).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+            }
+        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
+
+        finish();
+    }
 
     /**
      * updateDetails function updates the screen and user info according to user details changes
@@ -162,8 +192,8 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
         DocumentReference docRef = db.collection("users").document(user.getUid());
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot,
-                                @Nullable FirebaseFirestoreException e) {
+            public void onEvent(@android.support.annotation.Nullable DocumentSnapshot snapshot,
+                                @android.support.annotation.Nullable FirebaseFirestoreException e) {
                 if (e != null) {
                     Log.w(TAG, "Listen failed.", e);
                     return;
@@ -171,12 +201,35 @@ public class EmptyPlaylistActivity extends AppCompatActivity {
 
                 if (snapshot != null && snapshot.exists()) {
                     Log.d(TAG, "!@!Current data: " + snapshot.getData());
-                    userName.setText(user.getEmail());
-                    playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
+                    getUserDetails();
                 } else {
                     Log.d(TAG, "!@!Current data: null");
                 }
             }
         });
+    }
+
+    void getUserDetails() {
+        if (user != null) {
+            // read current user user details data from the database
+            DocumentReference docRef = db.collection("users").document(user.getUid());
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            CurrentUser.setCurrentUser(document.toObject(User.class));
+                            userName.setText(user.getEmail());
+                            playlistNum.setText((String.valueOf("Playlists: " + CurrentUser.currentUser.getPlaylistNumber())));
+                        } else {
+                            Log.d(TAG, "No such document");
+                        }
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
     }
 }

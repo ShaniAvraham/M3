@@ -5,7 +5,7 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EmptyPlaylistActivity">
+    tools:context=".CommunityActivity">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -16,46 +16,50 @@
         >
 
         <TextView
-            android:id="@+id/playlist_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="30sp"
-            android:text="@string/playlist_name"
+            android:text="Community"
             android:textColor="@color/colorGreen"
             android:textStyle="bold"
             android:textAllCaps="true"
             android:padding="25dp"
             />
 
-        <ImageView
-            android:src="@mipmap/empty_icon"
-            android:id="@+id/logo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="60dp"
-            android:layout_gravity="center_horizontal" />
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:text="@string/empty_playlist_msg"
+            android:text="Request playlists from M3 friends and send them yours!"
             android:textColor="@color/colorGray"
-            android:gravity="center"
-            android:padding="25dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
             />
-
 
         <Button
-            android:id = "@+id/search_button"
-            android:layout_width = "100dp"
-            android:layout_height = "wrap_content"
+            android:id = "@+id/myrequests_btn"
+            android:layout_width="230dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
             android:layout_gravity="center_horizontal"
-            android:text = "@string/search"
+            android:text="My requests"
+            android:padding="20dp"
             android:textColor="@color/colorWhite"
-            android:background="@drawable/searchbar"
-            android:layout_marginTop="20dp"
+            android:background="@color/colorGreen"
             />
+
+        <Button
+            android:id = "@+id/communityrequests_btn"
+            android:layout_width="230dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center_horizontal"
+            android:text="Community requests"
+            android:padding="20dp"
+            android:textColor="@color/colorWhite"
+            android:background="@color/colorGreen"
+            />
+
 
     </LinearLayout>
 

@@ -39,7 +39,6 @@ public class MyPlaylistsActivity extends AppCompatActivity {
     TextView userName, playlistNum;
 
 
-    // TODO: add photos to server (instead of using res)
     int[] playlistImages = {};
 
     @Override
@@ -89,20 +88,28 @@ public class MyPlaylistsActivity extends AppCompatActivity {
         switch (menuItem.getItemId()) {
             case R.id.home:
                 startActivity(new Intent(MyPlaylistsActivity.this, HomeActivity.class));
+                finish();
                 break;
 
             case R.id.search:
                 Intent intent = new Intent(MyPlaylistsActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
+                finish();
                 break;
 
             case R.id.my_playlists:
                 break;
 
+            case R.id.community:
+                startActivity(new Intent(MyPlaylistsActivity.this, CommunityActivity.class));
+                finish();
+                break;
+
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
                 startActivity(new Intent(MyPlaylistsActivity.this, MainActivity.class));
+                finish();
                 break;
 
             default:
