@@ -27,7 +27,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     // UI components
     private EditText emailField, passwordField;
-    private Button signupButton;
+    private Button signupButton, backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +35,7 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
 
         signupButton = findViewById(R.id.signup_btn);
+        backButton = findViewById(R.id.back_btn);
 
         emailField = findViewById(R.id.email);
         passwordField = findViewById(R.id.password);
@@ -55,6 +56,16 @@ public class SignUpActivity extends AppCompatActivity {
                 } else {
                     toastMessage("Please fill in all the fields.");
                 }
+            }
+        });
+
+        // go back to login page
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
     }

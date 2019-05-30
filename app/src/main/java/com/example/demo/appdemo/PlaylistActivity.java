@@ -287,12 +287,19 @@ public class PlaylistActivity extends AppCompatActivity {
                         resultSong = document.toObject(Song.class);
                         results.addResult(resultSong);
                     }
+                    getSearchResultsArtists();
                 }
             }
         });
 
+    }
+
+    void getSearchResultsArtists()
+    {
         // matching artists
-        resultSongs = songsRef.whereEqualTo("artist", results.getFittingSearchKey());
+        CollectionReference songsRef = db.collection("songs");
+
+        Query resultSongs = songsRef.whereEqualTo("artist", results.getFittingSearchKey());
         resultSongs.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -308,7 +315,6 @@ public class PlaylistActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
 

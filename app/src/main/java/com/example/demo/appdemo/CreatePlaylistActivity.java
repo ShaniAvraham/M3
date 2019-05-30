@@ -132,7 +132,6 @@ public class CreatePlaylistActivity extends AppCompatActivity {
                 Intent intent = new Intent(CreatePlaylistActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
-                finish();
                 break;
 
             case R.id.my_playlists:

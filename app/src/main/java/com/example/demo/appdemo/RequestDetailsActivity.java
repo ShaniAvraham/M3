@@ -164,7 +164,6 @@ public class RequestDetailsActivity extends AppCompatActivity {
                 Intent intent = new Intent(RequestDetailsActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
-                finish();
                 break;
 
             case R.id.my_playlists:

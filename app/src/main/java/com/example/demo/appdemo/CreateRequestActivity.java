@@ -123,7 +123,6 @@ public class CreateRequestActivity extends AppCompatActivity {
                 Intent intent = new Intent(CreateRequestActivity.this, PlaylistActivity.class);
                 intent.putExtra("name", "Search");
                 startActivity(intent);
-                finish();
                 break;
 
             case R.id.my_playlists:
