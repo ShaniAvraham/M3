@@ -213,11 +213,11 @@ public class RequestDetailsActivity extends AppCompatActivity {
         // check if the user is the sender or receiver
         if (requestType.equals("My Requests"))
         {
-            text = "From: " + request.getReceiver();
+            text = "To: " + request.getReceiver();
             userFieldTxt.setText(text);
         }
         else {
-            text = "To: " + request.getSender();
+            text = "From: " + request.getSender();
             userFieldTxt.setText(text);
         }
 
