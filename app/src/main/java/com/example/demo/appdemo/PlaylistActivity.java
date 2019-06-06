@@ -149,7 +149,7 @@ public class PlaylistActivity extends AppCompatActivity {
             // set database path
             playlistType = (String) bd.get("type");
             if (playlistType.equals("static"))
-                playlistRef = db.collection("static playlists").document(playlistName);
+                playlistRef = db.collection("static").document(playlistName);
             else {
                 if (playlistType.equals("request"))
                 {

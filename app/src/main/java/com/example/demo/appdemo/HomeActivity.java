@@ -151,7 +151,7 @@ public class HomeActivity extends AppCompatActivity {
      */
     public void readPlaylists() {
         // read playlists data from the database
-        Task<QuerySnapshot> playlists = db.collection("static playlists")
+        Task<QuerySnapshot> playlists = db.collection("static")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override

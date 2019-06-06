@@ -108,4 +108,23 @@ public class MainActivity extends AppCompatActivity {
     private void toastMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
+
+    /**
+     * The code in the onStart() moves signed in users to the home page directly
+     * It allows users to stay signed up and doesn't force them to re-login.
+     * Also, if a user clicks on the back arrow by mistake and closes the app, it allows him to
+     * re-open it without signing in again.
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser!=null)
+        {
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
 }
